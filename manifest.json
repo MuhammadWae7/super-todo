@@ -1,0 +1,29 @@
+{
+    "name": "Weekly Task Planner",
+    "short_name": "Tasks",
+    "description": "A beautiful weekly task planner to help you stay organized and productive",
+    "start_url": "./",
+    "display": "standalone",
+    "background_color": "#f8f9fd",
+    "theme_color": "#6c5ce7",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='512' height='512'%3E%3Crect width='24' height='24' rx='12' fill='%236c5ce7'/%3E%3Cpath d='M9 12l2 2 4-4' stroke='white' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    "prefer_related_applications": false,
+    "categories": ["productivity", "utilities"],
+    "screenshots": [
+        {
+            "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1080 1920' width='1080' height='1920'%3E%3Crect width='1080' height='1920' fill='%23f8f9fd'/%3E%3C/svg%3E",
+            "sizes": "1080x1920",
+            "type": "image/svg+xml",
+            "platform": "wide",
+            "label": "Weekly Task Planner - Home Screen"
+        }
+    ]
+} 
