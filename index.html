@@ -1244,9 +1244,9 @@
                                 '192.168.0.',
                                 '10.0.0.'
                             ];
-                            
+
                             Promise.all(commonIPs.map(baseIP => {
-                                return Promise.all(Array.from({length: 10}, (_, i) => {
+                                return Promise.all(Array.from({ length: 10 }, (_, i) => {
                                     const ip = baseIP + (i + 1);
                                     return fetch(`http://${ip}:3000`, { timeout: 1000 })
                                         .then(() => ip)

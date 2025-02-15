@@ -76,18 +76,78 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register("{{ url_for('static', filename='sw.js') }}")
-                    .then(registration => {
-                        console.log('ServiceWorker registration successful');
-                    })
-                    .catch(err => {
-                        console.log('ServiceWorker registration failed: ', err);
+        document.addEventListener('DOMContentLoaded', () => {
+            // ... (keep existing code) ...
+
+            // Update the sync functionality
+            let socket = null;
+            let syncRetryTimeout = null;
+            const RETRY_INTERVAL = 5000;
+
+            function connectToSyncServer() {
+                try {
+                    // Connect to the Flask server's WebSocket
+                    socket = io();
+
+                    socket.on('connect', () => {
+                        console.log('Connected to sync server');
+                        updateSyncStatus('Connected');
+                        // Send current state
+                        sendSyncData();
                     });
-            });
-        }
+
+                    socket.on('sync', (data) => {
+                        try {
+                            if (data.type === 'sync' && data.data) {
+                                mergeTasks(data.data);
+                                showSyncNotification('Changes synced from another device');
+                            }
+                        } catch (error) {
+                            console.error('Error processing sync data:', error);
+                        }
+                    });
+
+                    socket.on('disconnect', () => {
+                        console.log('Disconnected from sync server');
+                        updateSyncStatus('Offline');
+                        scheduleReconnect();
+                    });
+
+                    socket.on('connect_error', () => {
+                        console.log('Connection error');
+                        updateSyncStatus('Offline');
+                        scheduleReconnect();
+                    });
+
+                } catch (error) {
+                    console.log('Error connecting to sync server:', error);
+                    updateSyncStatus('Offline');
+                    scheduleReconnect();
+                }
+            }
+
+            function sendSyncData() {
+                if (socket && socket.connected) {
+                    socket.emit('sync', {
+                        type: 'sync',
+                        tasks: tasks
+                    });
+                    showSyncNotification('Changes synced');
+                }
+            }
+
+            function scheduleReconnect() {
+                clearTimeout(syncRetryTimeout);
+                syncRetryTimeout = setTimeout(connectToSyncServer, RETRY_INTERVAL);
+            }
+
+            // Initialize sync on page load
+            connectToSyncServer();
+
+            // ... (keep rest of the existing code) ...
+        });
     </script>
 </body>
 </html> 
