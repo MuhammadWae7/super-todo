@@ -165,15 +165,36 @@ document.addEventListener('DOMContentLoaded', () => {
         tasks[currentDay].forEach(task => {
             const taskElement = document.createElement('div');
             taskElement.className = `task-item ${task.completed ? 'completed' : ''}`;
+            taskElement.draggable = true;
             
             taskElement.innerHTML = `
-                <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''}>
-                <span class="task-title">${task.title}</span>
-                <button class="delete-task" aria-label="Delete task">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 011.334-1.334h2.666a1.333 1.333 0 011.334 1.334V4m2 0v9.333a1.333 1.333 0 01-1.334 1.334H4.667a1.333 1.333 0 01-1.334-1.334V4h9.334z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                <div class="task-drag-handle">
+                    <svg width="16" height="16" viewBox="0 0 16 16">
+                        <path d="M4 4h2v2H4V4zm6 0h2v2h-2V4zM4 9h2v2H4V9zm6 0h2v2h-2V9z" fill="currentColor"/>
                     </svg>
-                </button>
+                </div>
+                <label class="modern-checkbox">
+                    <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''}>
+                    <span class="checkmark">
+                        <svg viewBox="0 0 24 24" class="checkmark-icon">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                        </svg>
+                    </span>
+                </label>
+                <span class="task-title" contenteditable="true">${task.title}</span>
+                <span class="task-duration-badge ${task.duration}">${getDurationLabel(task.duration)}</span>
+                <div class="task-actions">
+                    <button class="save-task" aria-label="Save task" style="display: none;">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M13.3334 5.33333L6.00002 12.6667L2.66669 9.33333" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <button class="delete-task" aria-label="Delete task">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 011.334-1.334h2.666a1.333 1.333 0 011.334 1.334V4m2 0v9.333a1.333 1.333 0 01-1.334 1.334H4.667a1.333 1.333 0 01-1.334-1.334V4h9.334z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
             `;
 
             const checkbox = taskElement.querySelector('.task-checkbox');

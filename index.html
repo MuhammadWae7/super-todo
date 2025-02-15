@@ -531,72 +531,85 @@
             }
         }
 
-        /* Modern Checkbox */
+        /* Modern Checkbox Styles */
         .modern-checkbox {
             position: relative;
             display: inline-block;
             width: 24px;
             height: 24px;
             margin-right: 1rem;
-            cursor: pointer;
         }
 
         .modern-checkbox input {
             opacity: 0;
             width: 0;
             height: 0;
+            position: absolute;
         }
 
-        .checkmark {
+        .modern-checkbox .checkmark {
             position: absolute;
             top: 0;
             left: 0;
             width: 24px;
             height: 24px;
-            background-color: var(--card-background);
-            border: 2px solid var(--border-color);
+            background: var(--card-background);
+            border: 2px solid var(--primary-color);
             border-radius: 6px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(108, 92, 231, 0.1);
         }
 
         .modern-checkbox:hover .checkmark {
-            border-color: var(--primary-color);
             transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(108, 92, 231, 0.2);
         }
 
-        .modern-checkbox input:checked~.checkmark {
-            background-color: var(--primary-color);
+        .modern-checkbox input:checked ~ .checkmark {
+            background: var(--primary-color);
             border-color: var(--primary-color);
         }
 
-        .checkmark:after {
-            content: "";
+        .checkmark-icon {
             position: absolute;
-            display: none;
-            left: 8px;
-            top: 4px;
-            width: 5px;
-            height: 10px;
-            border: solid white;
-            border-width: 0 2px 2px 0;
-            transform: rotate(45deg);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            width: 16px;
+            height: 16px;
+            fill: white;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .modern-checkbox input:checked~.checkmark:after {
-            display: block;
-            animation: checkmark 0.2s ease-in-out forwards;
+        .modern-checkbox input:checked ~ .checkmark .checkmark-icon {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
         }
 
-        @keyframes checkmark {
-            0% {
-                opacity: 0;
-                transform: rotate(45deg) scale(0);
-            }
+        .task-item.completed .modern-checkbox .checkmark {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
 
-            100% {
-                opacity: 1;
-                transform: rotate(45deg) scale(1);
-            }
+        .task-item.completed .modern-checkbox .checkmark-icon {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* Dark theme adjustments */
+        [data-theme="dark"] .modern-checkbox .checkmark {
+            background: var(--task-background);
+            border-color: var(--secondary-color);
+        }
+
+        [data-theme="dark"] .modern-checkbox:hover .checkmark {
+            border-color: var(--primary-color);
+        }
+
+        [data-theme="dark"] .modern-checkbox input:checked ~ .checkmark {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
         }
 
         /* Task Duration Select */
@@ -812,7 +825,24 @@
                         <button id="add-task-btn">+</button>
                     </div>
                     <div id="tasks-list" class="tasks-list">
-                        <!-- Tasks will be dynamically added here -->
+                        <!-- Tasks will be dynamically added here with this template -->
+                        <div class="task-item">
+                            <div class="task-drag-handle">
+                                <svg width="16" height="16" viewBox="0 0 16 16">
+                                    <path d="M4 4h2v2H4V4zm6 0h2v2h-2V4zM4 9h2v2H4V9zm6 0h2v2h-2V9z" fill="currentColor"/>
+                                </svg>
+                            </div>
+                            <label class="modern-checkbox">
+                                <input type="checkbox" class="task-checkbox">
+                                <span class="checkmark">
+                                    <svg viewBox="0 0 24 24" class="checkmark-icon">
+                                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                                    </svg>
+                                </span>
+                            </label>
+                            <span class="task-title"></span>
+                            <span class="task-duration-badge"></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1008,7 +1038,11 @@
                         </div>
                         <label class="modern-checkbox">
                             <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''}>
-                            <span class="checkmark"></span>
+                            <span class="checkmark">
+                                <svg viewBox="0 0 24 24" class="checkmark-icon">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                                </svg>
+                            </span>
                         </label>
                         <span class="task-title" contenteditable="true">${task.title}</span>
                         <span class="task-duration-badge ${task.duration}">${getDurationLabel(task.duration)}</span>
