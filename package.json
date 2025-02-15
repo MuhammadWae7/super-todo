@@ -1,0 +1,12 @@
+{
+    "name": "task-planner-sync",
+    "version": "1.0.0",
+    "description": "Local network sync server for Task Planner",
+    "main": "sync_server.js",
+    "scripts": {
+        "start": "node sync_server.js"
+    },
+    "dependencies": {
+        "ws": "^8.13.0"
+    }
+} 
