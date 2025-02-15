@@ -3,7 +3,7 @@ const http = require('http');
 const server = http.createServer();
 const wss = new WebSocket.Server({ server });
 
-// Store connected clients
+// Store connected clients and their tasks
 const clients = new Set();
 let lastKnownState = null;
 
@@ -22,17 +22,19 @@ wss.on('connection', (ws) => {
     ws.on('message', (message) => {
         try {
             const data = JSON.parse(message);
-            lastKnownState = data.tasks;
-            
-            // Broadcast to all other clients
-            clients.forEach(client => {
-                if (client !== ws && client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify({
-                        type: 'sync',
-                        data: lastKnownState
-                    }));
-                }
-            });
+            if (data.type === 'sync') {
+                lastKnownState = data.tasks;
+                
+                // Broadcast to all other clients
+                clients.forEach(client => {
+                    if (client !== ws && client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify({
+                            type: 'sync',
+                            data: lastKnownState
+                        }));
+                    }
+                });
+            }
         } catch (error) {
             console.error('Error processing message:', error);
         }

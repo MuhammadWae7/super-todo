@@ -565,7 +565,7 @@
             box-shadow: 0 4px 8px rgba(108, 92, 231, 0.2);
         }
 
-        .modern-checkbox input:checked ~ .checkmark {
+        .modern-checkbox input:checked~.checkmark {
             background: var(--primary-color);
             border-color: var(--primary-color);
         }
@@ -582,7 +582,7 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .modern-checkbox input:checked ~ .checkmark .checkmark-icon {
+        .modern-checkbox input:checked~.checkmark .checkmark-icon {
             opacity: 1;
             transform: translate(-50%, -50%) scale(1);
         }
@@ -607,7 +607,7 @@
             border-color: var(--primary-color);
         }
 
-        [data-theme="dark"] .modern-checkbox input:checked ~ .checkmark {
+        [data-theme="dark"] .modern-checkbox input:checked~.checkmark {
             background: var(--primary-color);
             border-color: var(--primary-color);
         }
@@ -769,9 +769,17 @@
         }
 
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
     </style>
 </head>
@@ -829,14 +837,15 @@
                         <div class="task-item">
                             <div class="task-drag-handle">
                                 <svg width="16" height="16" viewBox="0 0 16 16">
-                                    <path d="M4 4h2v2H4V4zm6 0h2v2h-2V4zM4 9h2v2H4V9zm6 0h2v2h-2V9z" fill="currentColor"/>
+                                    <path d="M4 4h2v2H4V4zm6 0h2v2h-2V4zM4 9h2v2H4V9zm6 0h2v2h-2V9z"
+                                        fill="currentColor" />
                                 </svg>
                             </div>
                             <label class="modern-checkbox">
                                 <input type="checkbox" class="task-checkbox">
                                 <span class="checkmark">
                                     <svg viewBox="0 0 24 24" class="checkmark-icon">
-                                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
                                     </svg>
                                 </span>
                             </label>
@@ -964,7 +973,8 @@
                     completed: false,
                     duration: duration,
                     day_of_week: currentDay,
-                    order: tasks[currentDay].length
+                    order: tasks[currentDay].length,
+                    lastModified: Date.now()
                 };
 
                 // Add task to current day
@@ -980,25 +990,11 @@
                     }
                 }
 
-                // If it's a weekly task, add it to the task list with special marking
-                if (duration === 'week') {
-                    task.weeklyDeadline = new Date();
-                    task.weeklyDeadline.setDate(task.weeklyDeadline.getDate() + (6 - currentDay));
-                }
-
-                // If it's a monthly task, add it to the task list with special marking
-                if (duration === 'month') {
-                    task.monthlyDeadline = new Date();
-                    task.monthlyDeadline.setMonth(task.monthlyDeadline.getMonth() + 1);
-                }
-
                 localStorage.setItem('tasks', JSON.stringify(tasks));
                 renderTasks();
                 updateProgress();
                 newTaskInput.value = '';
-
-                // Sync to other devices
-                syncTasks();
+                sendSyncData();
             }
 
             function deleteTask(taskId) {
@@ -1008,6 +1004,7 @@
                 localStorage.setItem('tasks', JSON.stringify(tasks));
                 renderTasks();
                 updateProgress();
+                sendSyncData();
             }
 
             function toggleTask(taskId) {
@@ -1015,12 +1012,14 @@
                     const task = tasks[day].find(t => t.id === taskId);
                     if (task) {
                         task.completed = !task.completed;
+                        task.lastModified = Date.now();
                         break;
                     }
                 }
                 localStorage.setItem('tasks', JSON.stringify(tasks));
                 updateProgress();
                 checkWeeklyCompletion();
+                sendSyncData();
             }
 
             function renderTasks() {
@@ -1029,6 +1028,8 @@
                 tasks[currentDay].forEach(task => {
                     const taskElement = document.createElement('div');
                     taskElement.className = `task-item ${task.completed ? 'completed' : ''}`;
+                    taskElement.draggable = true;
+                    taskElement.dataset.taskId = task.id;
 
                     taskElement.innerHTML = `
                         <div class="task-drag-handle">
@@ -1161,10 +1162,12 @@
                     const task = tasks[day].find(t => t.id === taskId);
                     if (task) {
                         task.title = newTitle;
+                        task.lastModified = Date.now();
                         break;
                     }
                 }
                 localStorage.setItem('tasks', JSON.stringify(tasks));
+                sendSyncData();
             }
 
             // Drag and Drop Functionality
@@ -1215,123 +1218,16 @@
                     return newOrder.indexOf(a.id.toString()) - newOrder.indexOf(b.id.toString());
                 });
 
+                tasks[currentDay].forEach((task, index) => {
+                    task.order = index;
+                    task.lastModified = Date.now();
+                });
+
                 localStorage.setItem('tasks', JSON.stringify(tasks));
+                sendSyncData();
             }
 
             // Task Syncing
-            function syncTasks() {
-                const tasksData = localStorage.getItem('tasks');
-                if (tasksData) {
-                    // Here you would typically send the data to a server
-                    // For now, we'll just use localStorage as a demo
-                    localStorage.setItem('tasks_backup', tasksData);
-
-                    // Show sync animation
-                    const syncIndicator = document.createElement('div');
-                    syncIndicator.className = 'sync-indicator';
-                    syncIndicator.textContent = '↑ Synced';
-                    document.body.appendChild(syncIndicator);
-
-                    setTimeout(() => {
-                        syncIndicator.remove();
-                    }, 2000);
-                }
-            }
-
-            function getDurationLabel(duration) {
-                const labels = {
-                    'day': 'Today',
-                    'week': 'This Week',
-                    'month': 'This Month',
-                    'daily': 'Daily'
-                };
-                return labels[duration] || '';
-            }
-
-            // Check for overdue tasks
-            function checkOverdueTasks() {
-                const now = new Date();
-                Object.values(tasks).flat().forEach(task => {
-                    if (task.weeklyDeadline && new Date(task.weeklyDeadline) < now) {
-                        showNotification('Weekly task overdue: ' + task.title);
-                    }
-                    if (task.monthlyDeadline && new Date(task.monthlyDeadline) < now) {
-                        showNotification('Monthly task overdue: ' + task.title);
-                    }
-                });
-            }
-
-            function showNotification(message) {
-                const notification = document.createElement('div');
-                notification.className = 'notification';
-                notification.textContent = message;
-                document.body.appendChild(notification);
-
-                setTimeout(() => {
-                    notification.remove();
-                }, 5000);
-            }
-
-            // Initialize drag and drop
-            initDragAndDrop();
-
-            // Check for overdue tasks periodically
-            setInterval(checkOverdueTasks, 60000); // Check every minute
-
-            // Add notification styles
-            const style = document.createElement('style');
-            style.textContent = `
-                .notification {
-                    position: fixed;
-                    bottom: 20px;
-                    right: 20px;
-                    background: var(--primary-color);
-                    color: white;
-                    padding: 1rem;
-                    border-radius: var(--border-radius);
-                    box-shadow: var(--box-shadow);
-                    animation: slideIn 0.3s ease-out;
-                    z-index: 1000;
-                }
-
-                .sync-indicator {
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background: var(--primary-color);
-                    color: white;
-                    padding: 0.5rem 1rem;
-                    border-radius: var(--border-radius);
-                    box-shadow: var(--box-shadow);
-                    animation: fadeInOut 2s ease-in-out;
-                    z-index: 1000;
-                }
-
-                @keyframes slideIn {
-                    from {
-                        transform: translateX(100%);
-                        opacity: 0;
-                    }
-                    to {
-                        transform: translateX(0);
-                        opacity: 1;
-                    }
-                }
-
-                @keyframes fadeInOut {
-                    0% { opacity: 0; transform: translateY(-20px); }
-                    20% { opacity: 1; transform: translateY(0); }
-                    80% { opacity: 1; transform: translateY(0); }
-                    100% { opacity: 0; transform: translateY(-20px); }
-                }
-            `;
-            document.head.appendChild(style);
-
-            // Initial render
-            renderTasks();
-            updateProgress();
-
-            // Sync functionality
             let ws = null;
             let syncRetryTimeout = null;
             const RETRY_INTERVAL = 5000; // 5 seconds
@@ -1391,8 +1287,8 @@
                     try {
                         const { type, data } = JSON.parse(event.data);
                         if (type === 'sync' && data) {
-                            // Merge incoming tasks with local tasks
                             mergeTasks(data);
+                            showSyncNotification('Changes synced from another device');
                         }
                     } catch (error) {
                         console.error('Error processing sync data:', error);
@@ -1411,15 +1307,15 @@
                 };
             }
 
-            function scheduleReconnect() {
-                clearTimeout(syncRetryTimeout);
-                syncRetryTimeout = setTimeout(connectToSyncServer, RETRY_INTERVAL);
-            }
+            function showSyncNotification(message) {
+                const notification = document.createElement('div');
+                notification.className = 'sync-notification';
+                notification.textContent = message;
+                document.body.appendChild(notification);
 
-            function updateSyncStatus(status) {
-                const syncText = document.querySelector('.sync-text');
-                syncText.textContent = status;
-                document.querySelector('.sync-status').classList.toggle('connected', status === 'Connected');
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
             }
 
             function sendSyncData() {
@@ -1428,12 +1324,13 @@
                         type: 'sync',
                         tasks: tasks
                     }));
+                    showSyncNotification('Changes synced');
                 }
             }
 
             function mergeTasks(incomingTasks) {
                 let hasChanges = false;
-                
+
                 // Compare timestamps and merge tasks
                 for (let day in incomingTasks) {
                     if (!tasks[day]) {
@@ -1461,32 +1358,104 @@
                 }
             }
 
-            // Modify addNewTask, deleteTask, toggleTask, and updateTask functions
-            const originalAddNewTask = addNewTask;
-            addNewTask = function() {
-                originalAddNewTask.apply(this, arguments);
-                sendSyncData();
-            };
+            function updateSyncStatus(status) {
+                const syncText = document.querySelector('.sync-text');
+                syncText.textContent = status;
+                document.querySelector('.sync-status').classList.toggle('connected', status === 'Connected');
+            }
 
-            const originalDeleteTask = deleteTask;
-            deleteTask = function() {
-                originalDeleteTask.apply(this, arguments);
-                sendSyncData();
-            };
+            function scheduleReconnect() {
+                clearTimeout(syncRetryTimeout);
+                syncRetryTimeout = setTimeout(connectToSyncServer, RETRY_INTERVAL);
+            }
 
-            const originalToggleTask = toggleTask;
-            toggleTask = function() {
-                originalToggleTask.apply(this, arguments);
-                sendSyncData();
-            };
+            function getDurationLabel(duration) {
+                const labels = {
+                    'day': 'Today',
+                    'week': 'This Week',
+                    'month': 'This Month',
+                    'daily': 'Daily'
+                };
+                return labels[duration] || '';
+            }
 
-            const originalUpdateTask = updateTask;
-            updateTask = function() {
-                originalUpdateTask.apply(this, arguments);
-                sendSyncData();
-            };
+            // Check for overdue tasks
+            function checkOverdueTasks() {
+                const now = new Date();
+                Object.values(tasks).flat().forEach(task => {
+                    if (task.weeklyDeadline && new Date(task.weeklyDeadline) < now) {
+                        showNotification('Weekly task overdue: ' + task.title);
+                    }
+                    if (task.monthlyDeadline && new Date(task.monthlyDeadline) < now) {
+                        showNotification('Monthly task overdue: ' + task.title);
+                    }
+                });
+            }
 
-            // Start sync connection
+            function showNotification(message) {
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                notification.textContent = message;
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.remove();
+                }, 5000);
+            }
+
+            // Initialize drag and drop
+            initDragAndDrop();
+
+            // Check for overdue tasks periodically
+            setInterval(checkOverdueTasks, 60000); // Check every minute
+
+            // Add notification styles
+            const style = document.createElement('style');
+            style.textContent = `
+                .notification {
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    background: var(--primary-color);
+                    color: white;
+                    padding: 1rem;
+                    border-radius: var(--border-radius);
+                    box-shadow: var(--box-shadow);
+                    animation: slideIn 0.3s ease-out;
+                    z-index: 1000;
+                }
+
+                .sync-notification {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: var(--primary-color);
+                    color: white;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: var(--border-radius);
+                    box-shadow: var(--box-shadow);
+                    animation: slideIn 0.3s ease-out;
+                    z-index: 1000;
+                }
+
+                @keyframes slideIn {
+                    from {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Initial render
+            renderTasks();
+            updateProgress();
+
+            // Sync functionality
             connectToSyncServer();
         });
 
