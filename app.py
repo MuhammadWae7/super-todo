@@ -48,8 +48,6 @@ class Task(db.Model):
     day_of_week = db.Column(db.Integer)  # 0-6 for Monday-Sunday
     last_modified = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     priority = db.Column(db.Integer, default=2)  # 1=High, 2=Medium, 3=Low
-    due_date = db.Column(db.DateTime)
-    category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
     position = db.Column(db.Integer, default=0)  # For maintaining task order
 
 class WeeklyProgress(db.Model):
@@ -96,8 +94,6 @@ def get_tasks():
         'completed': task.completed,
         'day_of_week': task.day_of_week,
         'priority': task.priority,
-        'due_date': task.due_date.isoformat() if task.due_date else None,
-        'category_id': task.category_id,
         'position': task.position,
         'last_modified': task.last_modified.isoformat() if task.last_modified else None
     } for task in tasks])
@@ -110,8 +106,6 @@ def create_task():
         description=data.get('description', ''),
         day_of_week=data.get('day_of_week', 0),
         priority=data.get('priority', 2),
-        due_date=datetime.fromisoformat(data['due_date']) if data.get('due_date') else None,
-        category_id=data.get('category_id'),
         position=data.get('position', 0)
     )
     db.session.add(task)
@@ -123,8 +117,6 @@ def create_task():
         'completed': task.completed,
         'day_of_week': task.day_of_week,
         'priority': task.priority,
-        'due_date': task.due_date.isoformat() if task.due_date else None,
-        'category_id': task.category_id,
         'position': task.position,
         'last_modified': task.last_modified.isoformat() if task.last_modified else None
     })
@@ -137,8 +129,6 @@ def update_task(task_id):
     task.title = data.get('title', task.title)
     task.description = data.get('description', task.description)
     task.priority = data.get('priority', task.priority)
-    task.due_date = datetime.fromisoformat(data['due_date']) if data.get('due_date') else task.due_date
-    task.category_id = data.get('category_id', task.category_id)
     task.position = data.get('position', task.position)
     task.last_modified = datetime.utcnow()
     db.session.commit()
@@ -177,18 +167,15 @@ def export_tasks():
     tasks = Task.query.all()
     output = StringIO()
     writer = csv.writer(output)
-    writer.writerow(['Title', 'Description', 'Completed', 'Day of Week', 'Priority', 'Due Date', 'Category'])
+    writer.writerow(['Title', 'Description', 'Completed', 'Day of Week', 'Priority'])
     
     for task in tasks:
-        category_name = task.category.name if task.category else ''
         writer.writerow([
             task.title,
             task.description,
             task.completed,
             task.day_of_week,
-            task.priority,
-            task.due_date.isoformat() if task.due_date else '',
-            category_name
+            task.priority
         ])
     
     output.seek(0)
