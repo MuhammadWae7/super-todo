@@ -190,6 +190,178 @@
             border-radius: 0 0 var(--border-radius) var(--border-radius);
         }
 
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: var(--task-background);
+            border-radius: var(--border-radius);
+            margin: 0.5rem 0;
+            transition: var(--transition);
+            position: relative;
+            cursor: grab;
+        }
+
+        .task-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .task-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .task-title {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 0.75rem;
+            font-size: 0.8rem;
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+
+        .task-category {
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .task-priority {
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .priority-high {
+            background: #ff6b6b33;
+            color: #ff6b6b;
+        }
+
+        .priority-medium {
+            background: #ffd93d33;
+            color: #ffd93d;
+        }
+
+        .priority-low {
+            background: #6c5ce733;
+            color: #6c5ce7;
+        }
+
+        .task-description {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            opacity: 0.8;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .task-description.expanded {
+            display: block;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .task-due-date {
+            font-size: 0.8rem;
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+
+        .stats-container {
+            background: var(--card-background);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-card {
+            background: var(--task-background);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+
+        .filter-container {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .filter-select {
+            padding: 0.5rem;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            background: var(--card-background);
+            color: var(--text-color);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            background: var(--card-background);
+            color: var(--text-color);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .export-button {
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            border: none;
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            transition: var(--transition);
+        }
+
+        .export-button:hover {
+            background: var(--secondary-color);
+        }
+
         .add-task {
             display: flex;
             gap: 0.75rem;
@@ -809,6 +981,44 @@
             </div>
         </header>
 
+        <div class="stats-container">
+            <h2>Task Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-tasks">0</div>
+                    <div class="stat-label">Total Tasks</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="completion-rate">0%</div>
+                    <div class="stat-label">Completion Rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="high-priority">0</div>
+                    <div class="stat-label">High Priority</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-container">
+            <input type="text" class="search-input" placeholder="Search tasks..." id="search-input">
+            <div class="filter-group">
+                <label>Priority:</label>
+                <select class="filter-select" id="priority-filter">
+                    <option value="all">All</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Category:</label>
+                <select class="filter-select" id="category-filter">
+                    <option value="all">All</option>
+                </select>
+            </div>
+            <button class="export-button" id="export-button">Export Tasks</button>
+        </div>
+
         <main>
             <div class="days-container">
                 <div class="day-tabs">
@@ -824,21 +1034,23 @@
                 <div class="tasks-container">
                     <div class="add-task">
                         <input type="text" id="new-task-input" placeholder="Add a new task...">
-                        <select id="task-duration" class="task-duration">
-                            <option value="day">Today Only</option>
-                            <option value="week">This Week</option>
-                            <option value="month">This Month</option>
-                            <option value="daily">Daily Task</option>
+                        <select id="task-priority" class="filter-select">
+                            <option value="1">High Priority</option>
+                            <option value="2" selected>Medium Priority</option>
+                            <option value="3">Low Priority</option>
                         </select>
-                        <button id="add-task-btn">+</button>
+                        <select id="task-category" class="filter-select">
+                            <option value="">No Category</option>
+                        </select>
+                        <input type="date" id="task-due-date" class="filter-select">
+                        <button onclick="addNewTask()">Add Task</button>
                     </div>
                     <div id="tasks-list" class="tasks-list">
                         <!-- Tasks will be dynamically added here with this template -->
                         <div class="task-item">
                             <div class="task-drag-handle">
                                 <svg width="16" height="16" viewBox="0 0 16 16">
-                                    <path d="M4 4h2v2H4V4zm6 0h2v2h-2V4zM4 9h2v2H4V9zm6 0h2v2h-2V9z"
-                                        fill="currentColor" />
+                                    <path d="M4 4h2v2H4V4zm6 0h2v2h-2V4zM4 9h2v2H4V9zm6 0h2v2h-2V9z" fill="currentColor" />
                                 </svg>
                             </div>
                             <label class="modern-checkbox">
@@ -875,24 +1087,169 @@
         document.addEventListener('DOMContentLoaded', () => {
             let currentDay = 0;
             let tasks = JSON.parse(localStorage.getItem('tasks')) || {};
+            let categories = [];
             let deferredPrompt = null;
 
-            // Initialize tasks for each day if not exists
-            for (let i = 0; i < 7; i++) {
-                if (!tasks[i]) {
-                    tasks[i] = [];
+            // Load categories
+            fetch('/api/categories')
+                .then(response => response.json())
+                .then(data => {
+                    categories = data;
+                    updateCategoryDropdowns();
+                });
+
+            function updateCategoryDropdowns() {
+                const categoryFilter = document.getElementById('category-filter');
+                const taskCategory = document.getElementById('task-category');
+                
+                // Clear existing options except "All" and "No Category"
+                while (categoryFilter.children.length > 1) {
+                    categoryFilter.removeChild(categoryFilter.lastChild);
+                }
+                while (taskCategory.children.length > 1) {
+                    taskCategory.removeChild(taskCategory.lastChild);
+                }
+
+                // Add categories
+                categories.forEach(category => {
+                    const filterOption = document.createElement('option');
+                    filterOption.value = category.id;
+                    filterOption.textContent = category.name;
+                    categoryFilter.appendChild(filterOption.cloneNode(true));
+                    taskCategory.appendChild(filterOption);
+                });
+            }
+
+            // Add new category
+            window.addCategory = () => {
+                const name = prompt('Enter category name:');
+                if (name) {
+                    const color = '#' + Math.floor(Math.random()*16777215).toString(16);
+                    fetch('/api/categories', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ name, color }),
+                    })
+                    .then(response => response.json())
+                    .then(category => {
+                        categories.push(category);
+                        updateCategoryDropdowns();
+                    });
+                }
+            };
+
+            // Update task stats
+            function updateTaskStats() {
+                fetch('/api/tasks/stats')
+                    .then(response => response.json())
+                    .then(stats => {
+                        document.getElementById('total-tasks').textContent = stats.total_tasks;
+                        document.getElementById('completion-rate').textContent = Math.round(stats.completion_rate) + '%';
+                        document.getElementById('high-priority').textContent = stats.tasks_by_priority.high;
+                    });
+            }
+
+            // Export tasks
+            document.getElementById('export-button').addEventListener('click', () => {
+                window.location.href = '/api/tasks/export';
+            });
+
+            // Search and filter tasks
+            document.getElementById('search-input').addEventListener('input', renderTasks);
+            document.getElementById('priority-filter').addEventListener('change', renderTasks);
+            document.getElementById('category-filter').addEventListener('change', renderTasks);
+
+            function addNewTask() {
+                const input = document.getElementById('new-task-input');
+                const priority = document.getElementById('task-priority').value;
+                const categoryId = document.getElementById('task-category').value;
+                const dueDate = document.getElementById('task-due-date').value;
+                
+                if (input.value.trim()) {
+                    fetch('/api/tasks', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            title: input.value.trim(),
+                            day_of_week: currentDay,
+                            priority: parseInt(priority),
+                            category_id: categoryId ? parseInt(categoryId) : null,
+                            due_date: dueDate || null,
+                            position: Object.keys(tasks).length
+                        }),
+                    })
+                    .then(response => response.json())
+                    .then(task => {
+                        tasks[task.id] = task;
+                        localStorage.setItem('tasks', JSON.stringify(tasks));
+                        input.value = '';
+                        renderTasks();
+                        updateTaskStats();
+                        sendSyncData();
+                    });
                 }
             }
 
-            const tasksContainer = document.getElementById('tasks-list');
-            const newTaskInput = document.getElementById('new-task-input');
-            const addTaskBtn = document.getElementById('add-task-btn');
-            const dayTabs = document.querySelectorAll('.day-tab');
-            const achievementModal = document.getElementById('achievement-modal');
-            const closeModalBtn = document.querySelector('.close-modal');
-            const themeToggle = document.getElementById('theme-toggle');
-            const installPrompt = document.getElementById('install-prompt');
-            const installBtn = document.getElementById('install-btn');
+            function renderTasks() {
+                const container = document.querySelector('.tasks-container');
+                const searchQuery = document.getElementById('search-input').value.toLowerCase();
+                const priorityFilter = document.getElementById('priority-filter').value;
+                const categoryFilter = document.getElementById('category-filter').value;
+                
+                container.innerHTML = '';
+                
+                const filteredTasks = Object.values(tasks)
+                    .filter(task => task.day_of_week === currentDay)
+                    .filter(task => {
+                        const matchesSearch = task.title.toLowerCase().includes(searchQuery);
+                        const matchesPriority = priorityFilter === 'all' || 
+                            (priorityFilter === 'high' && task.priority === 1) ||
+                            (priorityFilter === 'medium' && task.priority === 2) ||
+                            (priorityFilter === 'low' && task.priority === 3);
+                        const matchesCategory = categoryFilter === 'all' || 
+                            task.category_id === parseInt(categoryFilter);
+                        
+                        return matchesSearch && matchesPriority && matchesCategory;
+                    })
+                    .sort((a, b) => a.position - b.position);
+
+                filteredTasks.forEach(task => {
+                    const taskElement = document.createElement('div');
+                    taskElement.className = `task-item${task.completed ? ' completed' : ''}`;
+                    taskElement.draggable = true;
+                    taskElement.dataset.taskId = task.id;
+
+                    const category = categories.find(c => c.id === task.category_id);
+                    const priorityClass = task.priority === 1 ? 'high' : task.priority === 2 ? 'medium' : 'low';
+                    const dueDate = task.due_date ? new Date(task.due_date).toLocaleDateString() : '';
+
+                    taskElement.innerHTML = `
+                        <input type="checkbox" ${task.completed ? 'checked' : ''} onclick="toggleTask(${task.id})">
+                        <div class="task-details">
+                            <div class="task-header">
+                                <span class="task-title">${task.title}</span>
+                                <div class="task-meta">
+                                    ${category ? `<span class="task-category" style="background: ${category.color}33; color: ${category.color}">${category.name}</span>` : ''}
+                                    <span class="task-priority priority-${priorityClass}">${priorityClass}</span>
+                                    ${dueDate ? `<span class="task-due-date">Due: ${dueDate}</span>` : ''}
+                                </div>
+                            </div>
+                            ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
+                        </div>
+                        <div class="task-actions">
+                            <button onclick="deleteTask(${task.id})">Delete</button>
+                        </div>
+                    `;
+
+                    container.appendChild(taskElement);
+                });
+
+                updateTaskStats();
+            }
 
             // Theme handling
             const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
@@ -906,6 +1263,7 @@
                 updateThemeIcon('dark');
             }
 
+            const themeToggle = document.getElementById('theme-toggle');
             themeToggle.addEventListener('click', () => {
                 let theme = document.documentElement.getAttribute('data-theme');
                 let newTheme = theme === 'light' ? 'dark' : 'light';
@@ -928,10 +1286,10 @@
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 deferredPrompt = e;
-                installPrompt.style.display = 'block';
+                document.getElementById('install-prompt').style.display = 'block';
             });
 
-            installBtn.addEventListener('click', async () => {
+            document.getElementById('install-btn').addEventListener('click', async () => {
                 if (deferredPrompt) {
                     deferredPrompt.prompt();
                     const { outcome } = await deferredPrompt.userChoice;
@@ -939,18 +1297,19 @@
                         console.log('User accepted the install prompt');
                     }
                     deferredPrompt = null;
-                    installPrompt.style.display = 'none';
+                    document.getElementById('install-prompt').style.display = 'none';
                 }
             });
 
             // Event Listeners
-            addTaskBtn.addEventListener('click', addNewTask);
-            newTaskInput.addEventListener('keypress', (e) => {
+            document.getElementById('add-task-btn').addEventListener('click', addNewTask);
+            document.getElementById('new-task-input').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     addNewTask();
                 }
             });
 
+            const dayTabs = document.querySelectorAll('.day-tab');
             dayTabs.forEach(tab => {
                 tab.addEventListener('click', () => {
                     const day = parseInt(tab.dataset.day);
@@ -958,172 +1317,9 @@
                 });
             });
 
-            closeModalBtn.addEventListener('click', () => {
-                achievementModal.style.display = 'none';
+            document.querySelector('.close-modal').addEventListener('click', () => {
+                document.getElementById('achievement-modal').style.display = 'none';
             });
-
-            function addNewTask() {
-                const title = newTaskInput.value.trim();
-                if (!title) return;
-
-                const duration = document.getElementById('task-duration').value;
-                const task = {
-                    id: Date.now(),
-                    title,
-                    completed: false,
-                    duration: duration,
-                    day_of_week: currentDay,
-                    order: tasks[currentDay].length,
-                    lastModified: Date.now()
-                };
-
-                // Add task to current day
-                tasks[currentDay].push(task);
-
-                // If it's a daily task, add it to all days
-                if (duration === 'daily') {
-                    for (let day = 0; day < 7; day++) {
-                        if (day !== currentDay) {
-                            const dailyTask = { ...task, id: Date.now() + day };
-                            tasks[day].push(dailyTask);
-                        }
-                    }
-                }
-
-                localStorage.setItem('tasks', JSON.stringify(tasks));
-                renderTasks();
-                updateProgress();
-                newTaskInput.value = '';
-                sendSyncData();
-            }
-
-            function deleteTask(taskId) {
-                for (let day in tasks) {
-                    tasks[day] = tasks[day].filter(t => t.id !== taskId);
-                }
-                localStorage.setItem('tasks', JSON.stringify(tasks));
-                renderTasks();
-                updateProgress();
-                sendSyncData();
-            }
-
-            function toggleTask(taskId) {
-                for (let day in tasks) {
-                    const task = tasks[day].find(t => t.id === taskId);
-                    if (task) {
-                        task.completed = !task.completed;
-                        task.lastModified = Date.now();
-                        break;
-                    }
-                }
-                localStorage.setItem('tasks', JSON.stringify(tasks));
-                updateProgress();
-                checkWeeklyCompletion();
-                sendSyncData();
-            }
-
-            function renderTasks() {
-                tasksContainer.innerHTML = '';
-
-                tasks[currentDay].forEach(task => {
-                    const taskElement = document.createElement('div');
-                    taskElement.className = `task-item ${task.completed ? 'completed' : ''}`;
-                    taskElement.draggable = true;
-                    taskElement.dataset.taskId = task.id;
-
-                    taskElement.innerHTML = `
-                        <div class="task-drag-handle">
-                            <svg width="16" height="16" viewBox="0 0 16 16">
-                                <path d="M4 4h2v2H4V4zm6 0h2v2h-2V4zM4 9h2v2H4V9zm6 0h2v2h-2V9z" fill="currentColor"/>
-                            </svg>
-                        </div>
-                        <label class="modern-checkbox">
-                            <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''}>
-                            <span class="checkmark">
-                                <svg viewBox="0 0 24 24" class="checkmark-icon">
-                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
-                                </svg>
-                            </span>
-                        </label>
-                        <span class="task-title" contenteditable="true">${task.title}</span>
-                        <span class="task-duration-badge ${task.duration}">${getDurationLabel(task.duration)}</span>
-                        <div class="task-actions">
-                            <button class="save-task" aria-label="Save task" style="display: none;">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                    <path d="M13.3334 5.33333L6.00002 12.6667L2.66669 9.33333" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </button>
-                            <button class="delete-task" aria-label="Delete task">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                    <path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 011.334-1.334h2.666a1.333 1.333 0 011.334 1.334V4m2 0v9.333a1.333 1.333 0 01-1.334 1.334H4.667a1.333 1.333 0 01-1.334-1.334V4h9.334z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </button>
-                        </div>
-                    `;
-
-                    const checkbox = taskElement.querySelector('.task-checkbox');
-                    const taskTitle = taskElement.querySelector('.task-title');
-                    const saveButton = taskElement.querySelector('.save-task');
-                    const deleteButton = taskElement.querySelector('.delete-task');
-                    let originalText = task.title;
-
-                    // Handle checkbox changes
-                    checkbox.addEventListener('change', () => {
-                        toggleTask(task.id);
-                        taskElement.classList.toggle('completed');
-                    });
-
-                    // Handle task title editing
-                    taskTitle.addEventListener('focus', () => {
-                        originalText = taskTitle.textContent;
-                        saveButton.style.display = 'flex';
-                        taskElement.classList.add('editing');
-                    });
-
-                    taskTitle.addEventListener('blur', (e) => {
-                        // Don't blur if clicking save button
-                        if (e.relatedTarget !== saveButton) {
-                            taskTitle.textContent = originalText;
-                            saveButton.style.display = 'none';
-                            taskElement.classList.remove('editing');
-                        }
-                    });
-
-                    taskTitle.addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                            saveButton.click();
-                        } else if (e.key === 'Escape') {
-                            taskTitle.textContent = originalText;
-                            taskTitle.blur();
-                        }
-                    });
-
-                    // Handle save button
-                    saveButton.addEventListener('click', () => {
-                        const newTitle = taskTitle.textContent.trim();
-                        if (newTitle && newTitle !== originalText) {
-                            updateTask(task.id, newTitle);
-                            originalText = newTitle;
-                        } else {
-                            taskTitle.textContent = originalText;
-                        }
-                        saveButton.style.display = 'none';
-                        taskElement.classList.remove('editing');
-                        taskTitle.blur();
-                    });
-
-                    // Handle delete button
-                    deleteButton.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        if (confirm('Are you sure you want to delete this task?')) {
-                            deleteTask(task.id);
-                        }
-                    });
-
-                    tasksContainer.appendChild(taskElement);
-                });
-            }
 
             function switchDay(day) {
                 currentDay = day;
@@ -1153,7 +1349,7 @@
                 const allCompleted = allTasks.length > 0 && allTasks.every(task => task.completed);
 
                 if (allCompleted) {
-                    achievementModal.style.display = 'flex';
+                    document.getElementById('achievement-modal').style.display = 'flex';
                 }
             }
 

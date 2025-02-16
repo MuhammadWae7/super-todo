@@ -1,10 +1,12 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify, redirect, url_for, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, emit
 from datetime import datetime, timedelta
 import os
 import socket
 import json
+import csv
+from io import StringIO
 
 def get_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -31,6 +33,12 @@ db.init_app(app)
 connected_clients = set()
 last_known_state = {}
 
+class Category(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False, unique=True)
+    color = db.Column(db.String(7), default="#6c5ce7")  # Hex color code
+    tasks = db.relationship('Task', backref='category', lazy=True)
+
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
@@ -39,6 +47,10 @@ class Task(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     day_of_week = db.Column(db.Integer)  # 0-6 for Monday-Sunday
     last_modified = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    priority = db.Column(db.Integer, default=2)  # 1=High, 2=Medium, 3=Low
+    due_date = db.Column(db.DateTime)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
+    position = db.Column(db.Integer, default=0)  # For maintaining task order
 
 class WeeklyProgress(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -83,6 +95,10 @@ def get_tasks():
         'description': task.description,
         'completed': task.completed,
         'day_of_week': task.day_of_week,
+        'priority': task.priority,
+        'due_date': task.due_date.isoformat() if task.due_date else None,
+        'category_id': task.category_id,
+        'position': task.position,
         'last_modified': task.last_modified.isoformat() if task.last_modified else None
     } for task in tasks])
 
@@ -92,7 +108,11 @@ def create_task():
     task = Task(
         title=data['title'],
         description=data.get('description', ''),
-        day_of_week=data.get('day_of_week', 0)
+        day_of_week=data.get('day_of_week', 0),
+        priority=data.get('priority', 2),
+        due_date=datetime.fromisoformat(data['due_date']) if data.get('due_date') else None,
+        category_id=data.get('category_id'),
+        position=data.get('position', 0)
     )
     db.session.add(task)
     db.session.commit()
@@ -102,6 +122,10 @@ def create_task():
         'description': task.description,
         'completed': task.completed,
         'day_of_week': task.day_of_week,
+        'priority': task.priority,
+        'due_date': task.due_date.isoformat() if task.due_date else None,
+        'category_id': task.category_id,
+        'position': task.position,
         'last_modified': task.last_modified.isoformat() if task.last_modified else None
     })
 
@@ -110,6 +134,12 @@ def update_task(task_id):
     task = Task.query.get_or_404(task_id)
     data = request.json
     task.completed = data.get('completed', task.completed)
+    task.title = data.get('title', task.title)
+    task.description = data.get('description', task.description)
+    task.priority = data.get('priority', task.priority)
+    task.due_date = datetime.fromisoformat(data['due_date']) if data.get('due_date') else task.due_date
+    task.category_id = data.get('category_id', task.category_id)
+    task.position = data.get('position', task.position)
     task.last_modified = datetime.utcnow()
     db.session.commit()
     return jsonify({'success': True})
@@ -120,6 +150,75 @@ def delete_task(task_id):
     db.session.delete(task)
     db.session.commit()
     return jsonify({'success': True})
+
+@app.route('/api/categories', methods=['GET'])
+def get_categories():
+    categories = Category.query.all()
+    return jsonify([{
+        'id': category.id,
+        'name': category.name,
+        'color': category.color
+    } for category in categories])
+
+@app.route('/api/categories', methods=['POST'])
+def create_category():
+    data = request.json
+    category = Category(name=data['name'], color=data.get('color', '#6c5ce7'))
+    db.session.add(category)
+    db.session.commit()
+    return jsonify({
+        'id': category.id,
+        'name': category.name,
+        'color': category.color
+    })
+
+@app.route('/api/tasks/export', methods=['GET'])
+def export_tasks():
+    tasks = Task.query.all()
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['Title', 'Description', 'Completed', 'Day of Week', 'Priority', 'Due Date', 'Category'])
+    
+    for task in tasks:
+        category_name = task.category.name if task.category else ''
+        writer.writerow([
+            task.title,
+            task.description,
+            task.completed,
+            task.day_of_week,
+            task.priority,
+            task.due_date.isoformat() if task.due_date else '',
+            category_name
+        ])
+    
+    output.seek(0)
+    return send_file(
+        StringIO(output.getvalue()),
+        mimetype='text/csv',
+        as_attachment=True,
+        download_name='tasks.csv'
+    )
+
+@app.route('/api/tasks/stats', methods=['GET'])
+def get_task_stats():
+    total_tasks = Task.query.count()
+    completed_tasks = Task.query.filter_by(completed=True).count()
+    tasks_by_priority = {
+        'high': Task.query.filter_by(priority=1).count(),
+        'medium': Task.query.filter_by(priority=2).count(),
+        'low': Task.query.filter_by(priority=3).count()
+    }
+    tasks_by_category = {}
+    for category in Category.query.all():
+        tasks_by_category[category.name] = Task.query.filter_by(category_id=category.id).count()
+    
+    return jsonify({
+        'total_tasks': total_tasks,
+        'completed_tasks': completed_tasks,
+        'completion_rate': (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0,
+        'tasks_by_priority': tasks_by_priority,
+        'tasks_by_category': tasks_by_category
+    })
 
 @app.route('/api/progress', methods=['GET'])
 def get_progress():
