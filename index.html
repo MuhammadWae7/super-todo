@@ -388,18 +388,28 @@
         }
 
         #add-task-btn {
-            padding: 0.5rem 1rem;
-            border-radius: var(--border-radius);
+            width: 48px;
+            height: 48px;
             border: none;
             background: var(--primary-color);
             color: white;
+            border-radius: 50%;
             cursor: pointer;
-            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
             transition: var(--transition);
+            box-shadow: 0 4px 8px rgba(108, 92, 231, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 4px;
         }
 
         #add-task-btn:hover {
-            background: var(--secondary-color);
+            transform: scale(1.05) rotate(90deg);
+        }
+
+        #add-task-btn:active {
+            transform: scale(0.95);
         }
 
         .task-item {
