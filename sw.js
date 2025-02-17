@@ -1,79 +1,81 @@
-const CACHE_NAME = 'task-planner-v4';
+const CACHE_NAME = "task-planner-v4";
 const urlsToCache = [
-    './',
-    './index.html',
-    './manifest.json',
-    'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap'
+  "./",
+  "./index.html",
+  "./manifest.json",
+  "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap",
 ];
 
 // Install event - cache initial resources
-self.addEventListener('install', event => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(urlsToCache))
-            .then(() => self.skipWaiting()) // Force activation
-    );
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(urlsToCache))
+      .then(() => self.skipWaiting()) // Force activation
+  );
 });
 
 // Activate event - clean up old caches
-self.addEventListener('activate', event => {
-    event.waitUntil(
-        caches.keys().then(cacheNames => {
-            return Promise.all(
-                cacheNames.map(cacheName => {
-                    if (cacheName !== CACHE_NAME) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
-        }).then(() => {
-            // Force clients to update
-            self.clients.claim();
-            // Reload all open pages
-            self.clients.matchAll().then(clients => {
-                clients.forEach(client => client.navigate(client.url));
-            });
-        })
-    );
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches
+      .keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+      .then(() => {
+        // Force clients to update
+        self.clients.claim();
+        // Reload all open pages
+        self.clients.matchAll().then((clients) => {
+          clients.forEach((client) => client.navigate(client.url));
+        });
+      })
+  );
 });
 
 // Fetch event - serve cached content or fetch new
-self.addEventListener('fetch', event => {
-    event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                // Return cached response if found
-                if (response) {
-                    return response;
-                }
+self.addEventListener("fetch", (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      // Return cached response if found
+      if (response) {
+        return response;
+      }
 
-                // Clone the request
-                const fetchRequest = event.request.clone();
+      // Clone the request
+      const fetchRequest = event.request.clone();
 
-                // Make network request
-                return fetch(fetchRequest).then(
-                    response => {
-                        // Check if we received a valid response
-                        if (!response || response.status !== 200) {
-                            return response;
-                        }
+      // Make network request
+      return fetch(fetchRequest)
+        .then((response) => {
+          // Check if we received a valid response
+          if (!response || response.status !== 200) {
+            return response;
+          }
 
-                        // Clone the response
-                        const responseToCache = response.clone();
+          // Clone the response
+          const responseToCache = response.clone();
 
-                        // Cache the fetched response
-                        caches.open(CACHE_NAME)
-                            .then(cache => {
-                                cache.put(event.request, responseToCache);
-                            });
+          // Cache the fetched response
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
 
-                        return response;
-                    }
-                ).catch(() => {
-                    // Return offline fallback for HTML requests
-                    if (event.request.headers.get('accept').includes('text/html')) {
-                        return new Response(
-                            `
+          return response;
+        })
+        .catch(() => {
+          // Return offline fallback for HTML requests
+          if (event.request.headers.get("accept").includes("text/html")) {
+            return new Response(
+              `
                             <!DOCTYPE html>
                             <html lang="en">
                             <head>
@@ -109,16 +111,16 @@ self.addEventListener('fetch', event => {
                             </body>
                             </html>
                             `,
-                            {
-                                headers: {
-                                    'Content-Type': 'text/html',
-                                    'Cache-Control': 'no-store'
-                                }
-                            }
-                        );
-                    }
-                    return new Response('Offline content not available.');
-                });
-            })
-    );
-}); 
+              {
+                headers: {
+                  "Content-Type": "text/html",
+                  "Cache-Control": "no-store",
+                },
+              }
+            );
+          }
+          return new Response("Offline content not available.");
+        });
+    })
+  );
+});
