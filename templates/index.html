@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weekly Task Planner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}" />
+    <meta name="theme-color" content="#6c5ce7" />
+  </head>
+  <body>
+    <div class="app-container">
+      <header>
+        <div class="sync-status">
+          <span class="sync-text">Offline</span>
+        </div>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
+          </svg>
+        </button>
+        <h1>Weekly Task Planner</h1>
+        <div class="progress-container">
+          <div class="progress-info">
+            <span class="progress-text">Weekly Progress</span>
+            <span class="progress-percentage" id="progress-percentage">0%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <div class="days-container">
+          <div class="day-tabs">
+            <button class="day-tab active" data-day="0">Mon</button>
+            <button class="day-tab" data-day="1">Tue</button>
+            <button class="day-tab" data-day="2">Wed</button>
+            <button class="day-tab" data-day="3">Thu</button>
+            <button class="day-tab" data-day="4">Fri</button>
+            <button class="day-tab" data-day="5">Sat</button>
+            <button class="day-tab" data-day="6">Sun</button>
+          </div>
+
+          <div class="tasks-container">
+            <div class="add-task">
+              <input type="text" id="new-task-input" placeholder="Add a new task..." />
+              <select id="task-category">
+                <option value="day">Today Only</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="recurring">Daily Task</option>
+              </select>
+              <button id="add-task-btn" class="add-btn">
+                <span class="plus-icon">+</span>
+              </button>
+            </div>
+            <div class="task-filters">
+              <button class="filter-btn active" data-filter="all">All</button>
+              <button class="filter-btn" data-filter="day">Daily</button>
+              <button class="filter-btn" data-filter="week">Weekly</button>
+              <button class="filter-btn" data-filter="month">Monthly</button>
+              <button class="filter-btn" data-filter="recurring">Recurring</button>
+            </div>
+            <div id="tasks-list" class="tasks-list"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sync.js') }}"></script>
+  </body>
+</html>

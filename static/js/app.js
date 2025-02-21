@@ -86,31 +86,38 @@ document.addEventListener("DOMContentLoaded", () => {
       const newTaskInput = document.getElementById("new-task-input");
       // Task Management
       let tasks = JSON.parse(localStorage.getItem("tasks")) || {};
-      function addTask(title, day) {
+      let currentFilter = "all";
+      
+      function addTask(title, category, day) {
           if (!tasks[day]) {
               tasks[day] = [];
           }
           tasks[day].push({
               id: Date.now(),
               title: title,
-              completed: false
+              completed: false,
+              category: category,
+              created: new Date().toISOString()
           });
           saveAndUpdate();
       }
-      function saveAndUpdate() {
-          localStorage.setItem("tasks", JSON.stringify(tasks));
-          renderTasks();
-          updateProgress();
-          sendSyncData();
-      }
+      
       function renderTasks() {
           const activeDay = document.querySelector(".day-tab.active").dataset.day;
           const tasksList = document.getElementById("tasks-list");
           const dayTasks = tasks[activeDay] || [];
+          
           tasksList.innerHTML = "";
-          tasksList.style.display = dayTasks.length ? "block" : "none";
-          if (dayTasks.length) {
-              dayTasks.forEach(task => createTaskElement(task, activeDay));
+          
+          const filteredTasks = currentFilter === "all" 
+              ? dayTasks 
+              : dayTasks.filter(task => task.category === currentFilter);
+          
+          if (filteredTasks.length) {
+              filteredTasks.forEach(task => createTaskElement(task, activeDay));
+              tasksList.style.display = "block";
+          } else {
+              tasksList.style.display = "none";
           }
       }
       function createTaskElement(task, day) {

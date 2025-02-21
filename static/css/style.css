@@ -11,7 +11,90 @@
   --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   --transition: all 0.3s ease;
 }
+.add-btn {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    border: none;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
 
+.add-btn:hover {
+    transform: rotate(90deg);
+}
+
+.plus-icon {
+    color: white;
+    font-size: 24px;
+    line-height: 1;
+}
+
+.task-filters {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+    padding: 0 10px;
+}
+
+.filter-btn {
+    padding: 5px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    background: transparent;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+#task-category {
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    margin-right: 10px;
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+.task-item {
+    animation: slideIn 0.3s ease;
+}
+
+.add-task button {
+    transition: transform 0.3s ease;
+}
+
+.add-task button:hover {
+    transform: rotate(90deg);
+}
 [data-theme="dark"] {
   --primary-color: #8b80ff;
   --secondary-color: #6c5ce7;
@@ -196,9 +279,7 @@ h1 {
 #add-task-btn:hover {
   background: var(--secondary-color);
   transform: scale(1.05);
-}
-
-.task-item {
+}.task-item {
   display: flex;
   align-items: center;
   padding: 1rem;
@@ -206,26 +287,18 @@ h1 {
   border-radius: var(--border-radius);
   margin-bottom: 0.75rem;
   transition: var(--transition);
-}
-
-.task-item:hover {
+}.task-item:hover {
   transform: translateX(5px);
-}
-
-.task-checkbox {
+}.task-checkbox {
   width: 20px;
   height: 20px;
   margin-right: 1rem;
   cursor: pointer;
   accent-color: var(--primary-color);
-}
-
-.task-title {
+}.task-title {
   flex: 1;
   font-size: 1rem;
-}
-
-.delete-task {
+}.delete-task {
   background: none;
   border: none;
   color: var(--danger-color);
@@ -240,25 +313,17 @@ h1 {
   justify-content: center;
   transition: var(--transition);
   opacity: 0;
-}
-
-.task-item:hover .delete-task {
+}.task-item:hover .delete-task {
   opacity: 1;
-}
-
-.delete-task:hover {
+}.delete-task:hover {
   background: var(--danger-color);
   color: white;
   transform: scale(1.1);
-}
-
-.task-item.completed .task-title {
+}.task-item.completed .task-title {
   text-decoration: line-through;
   color: var(--secondary-color);
   opacity: 0.7;
-}
-
-.achievement-modal {
+}.achievement-modal {
   display: none;
   position: fixed;
   top: 0;
@@ -269,9 +334,7 @@ h1 {
   justify-content: center;
   align-items: center;
   z-index: 1000;
-}
-
-.modal-content {
+}.modal-content {
   background: var(--card-background);
   padding: 2rem;
   border-radius: var(--border-radius);
@@ -279,9 +342,7 @@ h1 {
   animation: modal-pop 0.3s ease-out;
   max-width: 90%;
   margin: 1rem;
-}
-
-@keyframes modal-pop {
+}@keyframes modal-pop {
   from {
     transform: scale(0.8);
     opacity: 0;
@@ -290,9 +351,7 @@ h1 {
     transform: scale(1);
     opacity: 1;
   }
-}
-
-.close-modal {
+}.close-modal {
   margin-top: 1rem;
   padding: 0.75rem 1.5rem;
   background: var(--primary-color);
@@ -301,21 +360,15 @@ h1 {
   border-radius: var(--border-radius);
   cursor: pointer;
   transition: var(--transition);
-}
-
-.close-modal:hover {
+}.close-modal:hover {
   background: var(--secondary-color);
-}
-
-.monthly-message {
+}.monthly-message {
   background: var(--card-background);
   padding: 1rem;
   border-radius: var(--border-radius);
   margin-top: 1rem;
   animation: slide-down 0.3s ease-out;
-}
-
-@keyframes slide-down {
+}@keyframes slide-down {
   from {
     transform: translateY(-20px);
     opacity: 0;
@@ -324,9 +377,7 @@ h1 {
     transform: translateY(0);
     opacity: 1;
   }
-}
-
-@media (max-width: 600px) {
+}@media (max-width: 600px) {
   .app-container {
     padding: 1rem;
   }
@@ -385,10 +436,7 @@ h1 {
   height: 8px;
   border-radius: 50%;
   background: currentColor;
-}
-
-/* Add this to ensure task items are properly styled */
-.task-item input[type="checkbox"] {
+}.task-item input[type="checkbox"] {
   width: 20px;
   height: 20px;
   margin-right: 1rem;
