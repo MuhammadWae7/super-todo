@@ -70,7 +70,6 @@ with app.app_context():
 @socketio.on("connect")
 def handle_connect():
     connected_clients.add(request.sid)
-    print(f"Client connected: {request.sid}")
     if last_known_state:
         emit("sync", {"type": "sync", "data": last_known_state}, room=request.sid)
 
@@ -78,7 +77,6 @@ def handle_connect():
 @socketio.on("disconnect")
 def handle_disconnect():
     connected_clients.remove(request.sid)
-    print(f"Client disconnected: {request.sid}")
 
 
 @socketio.on("sync")
@@ -89,20 +87,10 @@ def handle_sync(data):
         for client_sid in connected_clients:
             if client_sid != request.sid:
                 emit("sync", {"type": "sync", "data": last_known_state}, room=client_sid)
-    if data.get("tasks"):
-        last_known_state = data["tasks"]
-        # Broadcast to all other clients
-        for client_sid in connected_clients:
-            if client_sid != request.sid:
-                emit(
-                    "sync", {"type": "sync", "data": last_known_state}, room=client_sid
-                )
-
 
 @app.route("/")
 def index():
     return render_template("index.html")
-
 
 @app.route("/api/tasks", methods=["GET"])
 def get_tasks():

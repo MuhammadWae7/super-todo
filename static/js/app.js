@@ -72,200 +72,74 @@ document.addEventListener("DOMContentLoaded", () => {
   closeModalBtn.addEventListener("click", () => {
     achievementModal.style.display = "none";
   });
-
-  // Functions
-  async function fetchTasks() {
-    try {
-      const response = await fetch("/api/tasks");
-      const data = await response.json();
-
-      // Group tasks by day
-      data.forEach((task) => {
-        tasks[task.day_of_week].push(task);
-      });
-
-      renderTasks();
-      updateProgress();
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
-    }
-  }
-
-  async function addNewTask() {
-    const title = newTaskInput.value.trim();
-    if (!title) return;
-
-    try {
-      const response = await fetch("/api/tasks", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title,
-          day_of_week: currentDay,
-        }),
-      });
-
-      const task = await response.json();
-      tasks[currentDay].push(task);
-
-      renderTasks();
-      updateProgress();
-      newTaskInput.value = "";
-    } catch (error) {
-      console.error("Error adding task:", error);
-    }
-  }
-
-  async function toggleTask(taskId, completed) {
-    try {
-      await fetch(`/api/tasks/${taskId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ completed }),
-      });
-
-      // Update local task state
-      for (let day in tasks) {
-        const task = tasks[day].find((t) => t.id === taskId);
-        if (task) {
-          task.completed = completed;
-          break;
-        }
+  // Theme Toggle
+  document.getElementById("theme-toggle").addEventListener("click", () => {
+      document.documentElement.setAttribute(
+          "data-theme",
+          document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark"
+      );
+  });
+  // Initialize
+  document.addEventListener("DOMContentLoaded", () => {
+      // Add task button functionality
+      const addTaskBtn = document.getElementById("add-task-btn");
+      const newTaskInput = document.getElementById("new-task-input");
+      // Task Management
+      let tasks = JSON.parse(localStorage.getItem("tasks")) || {};
+      function addTask(title, day) {
+          if (!tasks[day]) {
+              tasks[day] = [];
+          }
+          tasks[day].push({
+              id: Date.now(),
+              title: title,
+              completed: false
+          });
+          saveAndUpdate();
       }
-
-      updateProgress();
-      checkWeeklyCompletion();
-    } catch (error) {
-      console.error("Error updating task:", error);
-    }
-  }
-
-  async function deleteTask(taskId) {
-    try {
-      await fetch(`/api/tasks/${taskId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      // Remove task from local state
-      for (let day in tasks) {
-        tasks[day] = tasks[day].filter((t) => t.id !== taskId);
+      function saveAndUpdate() {
+          localStorage.setItem("tasks", JSON.stringify(tasks));
+          renderTasks();
+          updateProgress();
+          sendSyncData();
       }
-
-      renderTasks();
-      updateProgress();
-    } catch (error) {
-      console.error("Error deleting task:", error);
-    }
-  }
-
-  function renderTasks() {
-    tasksContainer.innerHTML = "";
-
-    tasks[currentDay].forEach((task) => {
-      const taskElement = document.createElement("div");
-      taskElement.className = `task-item ${task.completed ? "completed" : ""}`;
-      taskElement.draggable = true;
-
-      taskElement.innerHTML = `
-                <div class="task-drag-handle">
-                    <svg width="16" height="16" viewBox="0 0 16 16">
-                        <path d="M4 4h2v2H4V4zm6 0h2v2h-2V4zM4 9h2v2H4V9zm6 0h2v2h-2V9z" fill="currentColor"/>
-                    </svg>
-                </div>
-                <label class="modern-checkbox">
-                    <input type="checkbox" class="task-checkbox" ${
-                      task.completed ? "checked" : ""
-                    }>
-                    <span class="checkmark">
-                        <svg viewBox="0 0 24 24" class="checkmark-icon">
-                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
-                        </svg>
-                    </span>
-                </label>
-                <span class="task-title" contenteditable="true">${
-                  task.title
-                }</span>
-                <span class="task-duration-badge ${
-                  task.duration
-                }">${getDurationLabel(task.duration)}</span>
-                <div class="task-actions">
-                    <button class="save-task" aria-label="Save task" style="display: none;">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M13.3334 5.33333L6.00002 12.6667L2.66669 9.33333" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                    <button class="delete-task" aria-label="Delete task">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 011.334-1.334h2.666a1.333 1.333 0 011.334 1.334V4m2 0v9.333a1.333 1.333 0 01-1.334 1.334H4.667a1.333 1.333 0 01-1.334-1.334V4h9.334z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                </div>
-            `;
-
-      const checkbox = taskElement.querySelector(".task-checkbox");
-      checkbox.addEventListener("change", () => {
-        toggleTask(task.id, checkbox.checked);
-      });
-
-      const deleteButton = taskElement.querySelector(".delete-task");
-      deleteButton.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (confirm("Are you sure you want to delete this task?")) {
-          deleteTask(task.id);
-        }
-      });
-
-      tasksContainer.appendChild(taskElement);
-    });
-  }
-
-  function switchDay(day) {
-    currentDay = day;
-
-    // Update active tab
-    dayTabs.forEach((tab) => {
-      tab.classList.remove("active");
-      if (parseInt(tab.dataset.day) === day) {
-        tab.classList.add("active");
+      function renderTasks() {
+          const activeDay = document.querySelector(".day-tab.active").dataset.day;
+          const tasksList = document.getElementById("tasks-list");
+          const dayTasks = tasks[activeDay] || [];
+          tasksList.innerHTML = "";
+          tasksList.style.display = dayTasks.length ? "block" : "none";
+          if (dayTasks.length) {
+              dayTasks.forEach(task => createTaskElement(task, activeDay));
+          }
       }
-    });
-
-    renderTasks();
-  }
-
-  function updateProgress() {
-    const totalTasks = Object.values(tasks).flat().length;
-    const completedTasks = Object.values(tasks)
-      .flat()
-      .filter((task) => task.completed).length;
-    const progressPercentage =
-      totalTasks === 0 ? 0 : (completedTasks / totalTasks) * 100;
-
-    document.getElementById("progress-percentage").textContent = `${Math.round(
-      progressPercentage
-    )}%`;
-    document.getElementById(
-      "progress-fill"
-    ).style.width = `${progressPercentage}%`;
-  }
-
-  function checkWeeklyCompletion() {
-    const allTasks = Object.values(tasks).flat();
-    const allCompleted =
-      allTasks.length > 0 && allTasks.every((task) => task.completed);
-
-    if (allCompleted) {
-      achievementModal.style.display = "flex";
-    }
-  }
-
+      function createTaskElement(task, day) {
+          const taskElement = document.createElement("div");
+          taskElement.className = `task-item ${task.completed ? "completed" : ""}`;
+          taskElement.innerHTML = `
+              <input type="checkbox" ${task.completed ? "checked" : ""}>
+              <span class="task-title">${task.title}</span>
+              <button class="delete-task">×</button>
+          `;
+          taskElement.querySelector("input").addEventListener("change", (e) => {
+              task.completed = e.target.checked;
+              taskElement.classList.toggle("completed", task.completed);
+              saveAndUpdate();
+          });
+          taskElement.querySelector(".delete-task").addEventListener("click", () => {
+              tasks[day] = tasks[day].filter(t => t.id !== task.id);
+              saveAndUpdate();
+          });
+          document.getElementById("tasks-list").appendChild(taskElement);
+      }
+      function updateProgress() {
+          const allTasks = Object.values(tasks).flat();
+          const percentage = allTasks.length ? 
+              Math.round((allTasks.filter(task => task.completed).length / allTasks.length) * 100) : 0;
+          document.getElementById("progress-percentage").textContent = `${percentage}%`;
+          document.getElementById("progress-fill").style.width = `${percentage}%`;
+      }
+  });
   // Check for monthly milestone
   const startDate = localStorage.getItem("startDate");
   if (!startDate) {
@@ -275,14 +149,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const today = new Date();
     const diffTime = Math.abs(today - monthAgo);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays >= 30) {
-      // Show monthly achievement notification
-      const monthlyMessage = document.createElement("div");
-      monthlyMessage.className = "monthly-message";
-      monthlyMessage.textContent =
-        "🎉 Congratulations on maintaining your routine for a month! Would you like to adjust your daily plan?";
-      document.querySelector("header").appendChild(monthlyMessage);
-    }
+  // Show monthly achievement notification
+  const monthlyMessage = document.createElement("div");
+  monthlyMessage.className = "monthly-message";
+  monthlyMessage.textContent =
+    "🎉 Congratulations on maintaining your routine for a month! Would you like to adjust your daily plan?";
+  document.querySelector("header").appendChild(monthlyMessage);
   }
 });
