@@ -351,3 +351,47 @@ h1 {
     padding: 0.75rem;
   }
 }
+/* Add these styles after the header styles and before the theme-toggle styles */
+.sync-status {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+  background: var(--task-background);
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+}
+
+.sync-status.connected {
+  background: #4ade80;
+  color: var(--card-background);
+}
+
+.sync-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sync-text::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Add this to ensure task items are properly styled */
+.task-item input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin-right: 1rem;
+  cursor: pointer;
+  accent-color: var(--primary-color);
+}

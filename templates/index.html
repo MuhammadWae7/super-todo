@@ -80,6 +80,10 @@
           </div>
         </div>
       </header>
+      <div class="sync-status">
+        <span class="sync-text">Offline</span>
+      </div>
+    </header>
 
       <main>
         <div class="days-container">
@@ -122,6 +126,23 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
+        // Add tasks management
+        let tasks = JSON.parse(localStorage.getItem("tasks")) || {};
+        
+        function addTask(title, day) {
+          if (!tasks[day]) {
+            tasks[day] = [];
+          }
+          tasks[day].push({
+            id: Date.now(),
+            title: title,
+            completed: false,
+            priority: "medium"
+          });
+          localStorage.setItem("tasks", JSON.stringify(tasks));
+          renderTasks();
+          updateProgress();
+        }
         const addTaskBtn = document.getElementById("add-task-btn");
         const newTaskInput = document.getElementById("new-task-input");
         addTaskBtn.addEventListener("click", () => {
@@ -210,21 +231,58 @@
           syncRetryTimeout = setTimeout(connectToSyncServer, RETRY_INTERVAL);
         }
         function renderTasks() {
-            const activeDay = document.querySelector(".day-tab.active").dataset.day;
-            const tasksList = document.getElementById("tasks-list");
-            const dayTasks = tasks[activeDay] || [];
-            
-            tasksList.innerHTML = "";
-            
-            if (dayTasks.length === 0) {
-                tasksList.style.display = "none";
-                return;
-            }
-            
-            tasksList.style.display = "block";
-            dayTasks.forEach(task => {
-                // ... existing task rendering code ...
-            });
+          const activeDay = document.querySelector(".day-tab.active").dataset.day;
+          const tasksList = document.getElementById("tasks-list");
+          const dayTasks = tasks[activeDay] || [];
+          
+          tasksList.innerHTML = "";
+          
+          if (dayTasks.length === 0) {
+              tasksList.style.display = "none";
+              return;
+          }
+          
+          tasksList.style.display = "block";
+          dayTasks.forEach(task => {
+              const taskElement = document.createElement("div");
+              taskElement.className = `task-item ${task.completed ? "completed" : ""}`;
+              taskElement.innerHTML = `
+                  <input type="checkbox" ${task.completed ? "checked" : ""}>
+                  <span class="task-title">${task.title}</span>
+                  <button class="delete-task">×</button>
+              `;
+              
+              // Add event listeners for checkbox and delete button
+              const checkbox = taskElement.querySelector("input");
+              checkbox.addEventListener("change", () => {
+                  task.completed = checkbox.checked;
+                  taskElement.classList.toggle("completed", task.completed);
+                  localStorage.setItem("tasks", JSON.stringify(tasks));
+                  updateProgress();
+                  sendSyncData();
+              });
+              
+              const deleteBtn = taskElement.querySelector(".delete-task");
+              deleteBtn.addEventListener("click", () => {
+                  tasks[activeDay] = tasks[activeDay].filter(t => t.id !== task.id);
+                  localStorage.setItem("tasks", JSON.stringify(tasks));
+                  renderTasks();
+                  updateProgress();
+                  sendSyncData();
+              });
+              
+              tasksList.appendChild(taskElement);
+          });
+        }
+        function updateProgress() {
+          const totalTasks = Object.values(tasks).flat().length;
+          const completedTasks = Object.values(tasks)
+            .flat()
+            .filter(task => task.completed).length;
+          const percentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+          
+          document.getElementById("progress-percentage").textContent = `${percentage}%`;
+          document.getElementById("progress-fill").style.width = `${percentage}%`;
         }
         // Initialize sync on page load
         connectToSyncServer();
