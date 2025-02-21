@@ -84,6 +84,11 @@ def handle_disconnect():
 @socketio.on("sync")
 def handle_sync(data):
     global last_known_state
+    if data and isinstance(data, dict) and "tasks" in data:
+        last_known_state = data["tasks"]
+        for client_sid in connected_clients:
+            if client_sid != request.sid:
+                emit("sync", {"type": "sync", "data": last_known_state}, room=client_sid)
     if data.get("tasks"):
         last_known_state = data["tasks"]
         # Broadcast to all other clients

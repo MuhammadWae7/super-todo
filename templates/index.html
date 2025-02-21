@@ -122,8 +122,23 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        // ... (keep existing code) ...
-
+        const addTaskBtn = document.getElementById("add-task-btn");
+        const newTaskInput = document.getElementById("new-task-input");
+        addTaskBtn.addEventListener("click", () => {
+          const taskText = newTaskInput.value.trim();
+          if (taskText) {
+            const activeDay = document.querySelector(".day-tab.active").dataset.day;
+            addTask(taskText, activeDay);
+            newTaskInput.value = "";
+            sendSyncData(); // Sync the new task
+          }
+        });
+        // Add enter key support
+        newTaskInput.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") {
+            addTaskBtn.click();
+          }
+        });
         // Update the sync functionality
         let socket = null;
         let syncRetryTimeout = null;
@@ -177,18 +192,42 @@
               tasks: tasks,
             });
             showSyncNotification("Changes synced");
+          } else {
+            updateSyncStatus("Offline");
+            scheduleReconnect();
           }
         }
-
+        // Modify the socket connection handling
+        socket.on("sync", (data) => {
+            if (data && data.type === "sync" && data.data) {
+                mergeTasks(data.data);
+                renderTasks();
+                updateProgress();
+            }
+        });
         function scheduleReconnect() {
           clearTimeout(syncRetryTimeout);
           syncRetryTimeout = setTimeout(connectToSyncServer, RETRY_INTERVAL);
         }
-
+        function renderTasks() {
+            const activeDay = document.querySelector(".day-tab.active").dataset.day;
+            const tasksList = document.getElementById("tasks-list");
+            const dayTasks = tasks[activeDay] || [];
+            
+            tasksList.innerHTML = "";
+            
+            if (dayTasks.length === 0) {
+                tasksList.style.display = "none";
+                return;
+            }
+            
+            tasksList.style.display = "block";
+            dayTasks.forEach(task => {
+                // ... existing task rendering code ...
+            });
+        }
         // Initialize sync on page load
         connectToSyncServer();
-
-        // ... (keep rest of the existing code) ...
       });
     </script>
   </body>
