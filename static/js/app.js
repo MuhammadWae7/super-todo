@@ -1,166 +1,175 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Initialize state
+  let tasks = JSON.parse(localStorage.getItem("tasks")) || {};
   let currentDay = 0;
-  let tasks = {};
-
-  // Initialize tasks for each day
+  let currentCategory = 'all';
+  // Initialize tasks for each day if empty
   for (let i = 0; i < 7; i++) {
-    tasks[i] = [];
+    if (!tasks[i]) tasks[i] = [];
   }
-
+  // DOM Elements
   const tasksContainer = document.getElementById("tasks-list");
   const newTaskInput = document.getElementById("new-task-input");
   const addTaskBtn = document.getElementById("add-task-btn");
   const dayTabs = document.querySelectorAll(".day-tab");
-  const achievementModal = document.getElementById("achievement-modal");
-  const closeModalBtn = document.querySelector(".close-modal");
+  const filterBtns = document.querySelectorAll(".filter-btn");
   const themeToggle = document.getElementById("theme-toggle");
-
-  // Theme handling
-  const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
-  const currentTheme = localStorage.getItem("theme");
-
-  if (currentTheme) {
-    document.documentElement.setAttribute("data-theme", currentTheme);
-    updateThemeIcon(currentTheme);
-  } else if (prefersDarkScheme.matches) {
-    document.documentElement.setAttribute("data-theme", "dark");
-    updateThemeIcon("dark");
+  function createTaskSection(title) {
+    const section = document.createElement('div');
+    section.className = 'category-section';
+    section.innerHTML = `<h3 class="category-title">${title}</h3>`;
+    return section;
   }
-
-  themeToggle.addEventListener("click", () => {
-    let theme = document.documentElement.getAttribute("data-theme");
-    let newTheme = theme === "light" ? "dark" : "light";
-
-    document.documentElement.setAttribute("data-theme", newTheme);
-    localStorage.setItem("theme", newTheme);
-    updateThemeIcon(newTheme);
-  });
-
-  function updateThemeIcon(theme) {
-    const iconPath = themeToggle.querySelector("path");
-    if (theme === "dark") {
-      iconPath.setAttribute(
-        "d",
-        "M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"
-      );
+  function renderTasks() {
+    const activeDay = parseInt(document.querySelector(".day-tab.active").dataset.day);
+    tasksContainer.innerHTML = "";
+    const dayTasks = tasks[activeDay] || [];
+    let filteredTasks;
+    if (currentCategory === 'all') {
+      filteredTasks = dayTasks;
     } else {
-      iconPath.setAttribute(
-        "d",
-        "M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"
+      filteredTasks = dayTasks.filter(task => task.category === currentCategory);
+    }
+    if (filteredTasks.length > 0) {
+      const section = createTaskSection(
+        currentCategory === 'all' ? 'All Tasks' :
+          `${currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1)} Tasks`
       );
+      filteredTasks.forEach(task => {
+        section.appendChild(createTaskElement(task, activeDay));
+      });
+      tasksContainer.appendChild(section);
+    } else {
+      tasksContainer.innerHTML = `<div class="empty-state">No ${currentCategory} tasks found</div>`;
     }
   }
+  function createTaskElement(task, day) {
+    const taskElement = document.createElement("div");
+    taskElement.className = `task-item ${task.completed ? "completed" : ""}`;
+    taskElement.style.animation = "slideIn 0.3s ease";
+    taskElement.innerHTML = `
+              <div class="task-content">
+                  <input type="checkbox" ${task.completed ? "checked" : ""}>
+                  <span class="task-title" contenteditable="false">${task.title}</span>
+              </div>
+              <div class="task-actions">
+                  <button class="edit-task">✎</button>
+                  <button class="delete-task">×</button>
+              </div>
+          `;
+    const checkbox = taskElement.querySelector("input");
+    const titleSpan = taskElement.querySelector(".task-title");
+    const editBtn = taskElement.querySelector(".edit-task");
+    const deleteBtn = taskElement.querySelector(".delete-task");
+    checkbox.addEventListener("change", () => {
+      task.completed = checkbox.checked;
+      taskElement.classList.toggle("completed", task.completed);
+      saveAndUpdate();
+    });
+    editBtn.addEventListener("click", () => {
+      titleSpan.contentEditable = titleSpan.contentEditable === "true" ? "false" : "true";
+      editBtn.textContent = titleSpan.contentEditable === "true" ? "✓" : "✎";
 
-  // Load tasks from server
-  fetchTasks();
-
-  // Event Listeners
-  addTaskBtn.addEventListener("click", addNewTask);
-  newTaskInput.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
-      addNewTask();
+      if (titleSpan.contentEditable === "true") {
+        titleSpan.focus();
+      } else {
+        task.title = titleSpan.textContent.trim();
+        saveAndUpdate();
+      }
+    });
+    titleSpan.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        editBtn.click();
+      }
+    });
+    deleteBtn.addEventListener("click", () => {
+      if (tasks[day] && Array.isArray(tasks[day])) {
+        taskElement.style.animation = "slideOut 0.3s ease";
+        setTimeout(() => {
+          tasks[day] = tasks[day].filter(t => t.id !== task.id);
+          saveAndUpdate();
+          renderTasks();
+        }, 300);
+      }
+    });
+    return taskElement;
+  }
+  function addNewTask() {
+    const taskText = newTaskInput.value.trim();
+    if (taskText) {
+      const activeDay = document.querySelector(".day-tab.active").dataset.day;
+      const newTask = {
+        id: Date.now(),
+        title: taskText,
+        completed: false,
+        category: currentCategory === 'all' ? 'daily' : currentCategory,
+        created: new Date().toISOString()
+      };
+      if (currentCategory === 'daily' || currentCategory === 'all') {
+        tasks[activeDay].push(newTask);
+      } else {
+        for (let i = 0; i < 7; i++) {
+          if (!tasks[i]) tasks[i] = [];
+          tasks[i].push({ ...newTask });
+        }
+      }
+      newTaskInput.value = "";
+      saveAndUpdate();
+      renderTasks();
     }
+  }
+  function saveAndUpdate() {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+    updateProgress();
+    sendSyncData();
+  }
+  function updateProgress() {
+    const allTasks = Object.values(tasks).flat();
+    const totalTasks = allTasks.length;
+    const completedTasks = allTasks.filter(task => task.completed).length;
+    const percentage = totalTasks ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    document.getElementById("progress-percentage").textContent = `${percentage}%`;
+    document.getElementById("progress-fill").style.width = `${percentage}%`;
+  }
+  function sendSyncData() {
+    if (window.socket && window.socket.connected) {
+      window.socket.emit("sync", { tasks });
+    }
+  }
+  // Event Listeners
+  filterBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelector(".filter-btn.active")?.classList.remove("active");
+      btn.classList.add("active");
+      currentCategory = btn.dataset.filter;
+      renderTasks();
+    });
+  });
+  addTaskBtn.addEventListener("click", addNewTask);
+
+  newTaskInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") addNewTask();
   });
 
-  dayTabs.forEach((tab) => {
+  dayTabs.forEach(tab => {
     tab.addEventListener("click", () => {
-      const day = parseInt(tab.dataset.day);
-      switchDay(day);
+      document.querySelector(".day-tab.active")?.classList.remove("active");
+      tab.classList.add("active");
+      renderTasks();
     });
   });
 
-  closeModalBtn.addEventListener("click", () => {
-    achievementModal.style.display = "none";
-  });
-  // Theme Toggle
-  document.getElementById("theme-toggle").addEventListener("click", () => {
-      document.documentElement.setAttribute(
-          "data-theme",
-          document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark"
-      );
+  themeToggle?.addEventListener("click", () => {
+    const currentTheme = document.documentElement.getAttribute("data-theme");
+    const newTheme = currentTheme === "light" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("theme", newTheme);
   });
   // Initialize
-  document.addEventListener("DOMContentLoaded", () => {
-      // Add task button functionality
-      const addTaskBtn = document.getElementById("add-task-btn");
-      const newTaskInput = document.getElementById("new-task-input");
-      // Task Management
-      let tasks = JSON.parse(localStorage.getItem("tasks")) || {};
-      let currentFilter = "all";
-      
-      function addTask(title, category, day) {
-          if (!tasks[day]) {
-              tasks[day] = [];
-          }
-          tasks[day].push({
-              id: Date.now(),
-              title: title,
-              completed: false,
-              category: category,
-              created: new Date().toISOString()
-          });
-          saveAndUpdate();
-      }
-      
-      function renderTasks() {
-          const activeDay = document.querySelector(".day-tab.active").dataset.day;
-          const tasksList = document.getElementById("tasks-list");
-          const dayTasks = tasks[activeDay] || [];
-          
-          tasksList.innerHTML = "";
-          
-          const filteredTasks = currentFilter === "all" 
-              ? dayTasks 
-              : dayTasks.filter(task => task.category === currentFilter);
-          
-          if (filteredTasks.length) {
-              filteredTasks.forEach(task => createTaskElement(task, activeDay));
-              tasksList.style.display = "block";
-          } else {
-              tasksList.style.display = "none";
-          }
-      }
-      function createTaskElement(task, day) {
-          const taskElement = document.createElement("div");
-          taskElement.className = `task-item ${task.completed ? "completed" : ""}`;
-          taskElement.innerHTML = `
-              <input type="checkbox" ${task.completed ? "checked" : ""}>
-              <span class="task-title">${task.title}</span>
-              <button class="delete-task">×</button>
-          `;
-          taskElement.querySelector("input").addEventListener("change", (e) => {
-              task.completed = e.target.checked;
-              taskElement.classList.toggle("completed", task.completed);
-              saveAndUpdate();
-          });
-          taskElement.querySelector(".delete-task").addEventListener("click", () => {
-              tasks[day] = tasks[day].filter(t => t.id !== task.id);
-              saveAndUpdate();
-          });
-          document.getElementById("tasks-list").appendChild(taskElement);
-      }
-      function updateProgress() {
-          const allTasks = Object.values(tasks).flat();
-          const percentage = allTasks.length ? 
-              Math.round((allTasks.filter(task => task.completed).length / allTasks.length) * 100) : 0;
-          document.getElementById("progress-percentage").textContent = `${percentage}%`;
-          document.getElementById("progress-fill").style.width = `${percentage}%`;
-      }
-  });
-  // Check for monthly milestone
-  const startDate = localStorage.getItem("startDate");
-  if (!startDate) {
-    localStorage.setItem("startDate", new Date().toISOString());
-  } else {
-    const monthAgo = new Date(startDate);
-    const today = new Date();
-    const diffTime = Math.abs(today - monthAgo);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  // Show monthly achievement notification
-  const monthlyMessage = document.createElement("div");
-  monthlyMessage.className = "monthly-message";
-  monthlyMessage.textContent =
-    "🎉 Congratulations on maintaining your routine for a month! Would you like to adjust your daily plan?";
-  document.querySelector("header").appendChild(monthlyMessage);
-  }
-});
+  const savedTheme = localStorage.getItem("theme") || "light";
+  document.documentElement.setAttribute("data-theme", savedTheme);
+  dayTabs[0].classList.add('active');
+  renderTasks();
+  updateProgress();
+}); // Close DOMContentLoaded event listener
