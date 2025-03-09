@@ -73,10 +73,19 @@ document.addEventListener("DOMContentLoaded", () => {
           const section = createTaskSection(
             `${category.charAt(0).toUpperCase() + category.slice(1)} Tasks`
           );
-          // Remove duplicate tasks based on title
-          const uniqueTasks = categoryTasks.filter((task, index, self) =>
-            index === self.findIndex(t => t.title === task.title)
-          );
+          // Sort tasks by priority (1: high, 2: medium, 3: low) and then by creation date
+          const uniqueTasks = categoryTasks
+            .filter((task, index, self) =>
+              index === self.findIndex(t => t.title === task.title)
+            )
+            .sort((a, b) => {
+              if (a.priority !== b.priority) {
+                return a.priority - b.priority; // Sort by priority first
+              }
+              // If priorities are equal, sort by creation date (newest first)
+              return new Date(b.created) - new Date(a.created);
+            });
+          
           uniqueTasks.forEach(task => {
             section.appendChild(createTaskElement(task, activeDay));
           });
@@ -87,10 +96,19 @@ document.addEventListener("DOMContentLoaded", () => {
       const section = createTaskSection(
         `${currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1)} Tasks`
       );
-      // Remove duplicate tasks based on title
-      const uniqueTasks = filteredTasks.filter((task, index, self) =>
-        index === self.findIndex(t => t.title === task.title)
-      );
+      // Sort tasks by priority and creation date
+      const uniqueTasks = filteredTasks
+        .filter((task, index, self) =>
+          index === self.findIndex(t => t.title === task.title)
+        )
+        .sort((a, b) => {
+          if (a.priority !== b.priority) {
+            return a.priority - b.priority; // Sort by priority first
+          }
+          // If priorities are equal, sort by creation date (newest first)
+          return new Date(b.created) - new Date(a.created);
+        });
+
       uniqueTasks.forEach(task => {
         section.appendChild(createTaskElement(task, activeDay));
       });
@@ -128,7 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span class="task-title">${task.title}</span>
                 <div class="task-details">
                     <span class="task-date">${formattedDate}</span>
-                    <span class="task-priority ${priorityClass}">${priorityText}</span>
+                    <span class="task-priority ${priorityClass}">${priorityText} Priority</span>
                 </div>
             </div>
         </div>
@@ -233,15 +251,17 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    const checkbox = taskElement.querySelector("input");
+    const checkbox = taskElement.querySelector("input[type='checkbox']");
     const titleSpan = taskElement.querySelector(".task-title");
     const editBtn = taskElement.querySelector(".edit-task");
     const deleteBtn = taskElement.querySelector(".delete-task");
+
     checkbox.addEventListener("change", () => {
       task.completed = checkbox.checked;
       taskElement.classList.toggle("completed", task.completed);
       saveAndUpdate();
     });
+
     editBtn.addEventListener("click", () => {
       titleSpan.contentEditable = titleSpan.contentEditable === "true" ? "false" : "true";
       editBtn.textContent = titleSpan.contentEditable === "true" ? "✓" : "✎";
@@ -296,6 +316,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   function addNewTask() {
     const taskText = newTaskInput.value.trim();
+    const priority = parseInt(document.getElementById("task-priority").value);
+    
     if (taskText) {
       const activeDay = parseInt(document.querySelector(".day-tab.active").dataset.day);
       const newTask = {
@@ -304,7 +326,7 @@ document.addEventListener("DOMContentLoaded", () => {
         completed: false,
         category: currentCategory === 'all' ? 'daily' : currentCategory,
         created: new Date().toISOString(),
-        priority: Math.floor(Math.random() * 3) + 1 // Random priority: 1 (high), 2 (medium), 3 (low)
+        priority: priority
       };
 
       // Handle tasks that should appear across all days

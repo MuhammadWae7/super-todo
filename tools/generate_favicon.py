@@ -1,13 +1,10 @@
 from PIL import Image, ImageDraw, ImageFont
 import os
 
-
 def create_favicon():
     # Create a 32x32 image (standard favicon size)
     size = 32
-    img = Image.new(
-        "RGBA", (size, size), (108, 92, 231, 255)
-    )  # Using our primary color #6c5ce7
+    img = Image.new("RGBA", (size, size), (193, 154, 107, 255))  # Using our primary color #c19a6b
     draw = ImageDraw.Draw(img)
 
     # Create rounded corners
@@ -21,16 +18,16 @@ def create_favicon():
 
     # Add a checkmark
     draw = ImageDraw.Draw(output)
-    check_points = [(8, 16), (14, 22), (24, 10)]  # Start  # Middle point  # End
+    check_points = [(8, 16), (14, 22), (24, 10)]  # Start, Middle point, End
     draw.line(check_points, fill="white", width=3)
 
     # Ensure the static directory exists
-    os.makedirs("static", exist_ok=True)
+    os.makedirs("../static", exist_ok=True)
 
     # Save as both ICO and PNG
-    output.save("static/favicon.ico", format="ICO", sizes=[(32, 32)])
-    output.save("static/favicon.png", format="PNG")
-
+    output.save("../static/favicon.ico", format="ICO", sizes=[(32, 32)])
+    output.save("../static/favicon.png", format="PNG")
 
 if __name__ == "__main__":
     create_favicon()
+    print("Favicon generated successfully!") 

@@ -1,48 +1,75 @@
-# Weekly Task Planner
+# Tasker - Premium Weekly Planner
 
 A beautiful and modern task planner that works offline and can be installed on your phone!
 
-![Task Planner Preview](https://user-images.githubusercontent.com/your-username/task-planner/main/preview.png)
-
 ## ✨ Features
 
-- 📱 Install on your phone or desktop
+- 📱 Install on your phone or desktop (PWA)
 - 🎨 Beautiful modern design with animations
 - 🌙 Dark mode support
-- 📊 Weekly progress tracking with gradient bar
+- 📊 Weekly progress tracking
 - ✅ Works offline
+- 🔄 Real-time sync across devices
 - 🎯 Daily task organization
-- 🎉 Achievement celebrations
 - 📱 Fully responsive design
 - ⚡ Fast and lightweight
 
-## 📲 How to Install
+## 🚀 Quick Start
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Start development server:
+```bash
+npm run dev
+```
+
+3. Open http://localhost:5000 in your browser
+
+## 📦 Production Build
+
+```bash
+npm run build
+npm start
+```
+
+## 🛠 Development
+
+### Project Structure
+```
+├── src/              # Server-side code
+├── static/           # Static assets
+│   ├── css/         # Stylesheets
+│   ├── js/          # Client-side JavaScript
+│   └── icons/       # App icons
+├── tools/           # Development utilities
+│   ├── generate_icons.py
+│   └── generate_favicon.py
+└── index.html       # Main HTML file
+```
+
+### Technologies Used
+- Node.js & Express
+- Socket.IO for real-time sync
+- Modern CSS with Custom Properties
+- Vanilla JavaScript
+- PWA support
+
+## 🔧 Tools
+
+Icon generation tools are available in the `tools` directory. See [tools/README.md](tools/README.md) for usage.
+
+## 📱 PWA Installation
 
 ### On Your Phone
-1. Open this link in Chrome
-2. Tap "Add to Home Screen" when prompted
-3. Or tap menu (⋮) → "Install app"
+1. Open in Chrome
+2. Tap "Add to Home Screen"
 
 ### On Desktop
 1. Open in Chrome
 2. Click install icon in address bar
-3. Or click menu (⋮) → "Install Weekly Task Planner"
-
-## 🚀 Quick Start
-
-1. Install the app
-2. Add tasks for each day
-3. Check them off as you complete them
-4. Track your weekly progress
-5. Enjoy the achievement celebrations!
-
-## 💻 Development
-
-This is a Progressive Web App (PWA) built with:
-- HTML5
-- CSS3 with Custom Properties
-- Vanilla JavaScript
-- Service Workers for offline support
 
 ## 🤝 Contributing
 

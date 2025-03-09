@@ -1,6 +1,25 @@
 {
-  "name": "todo-app",
+  "name": "tasker",
   "version": "1.0.0",
   "description": "A beautiful and modern task planner",
-  "private": true
+  "private": true,
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js --ignore 'static/*'",
+    "icons": "cd tools && python generate_icons.py && python generate_favicon.py",
+    "build": "npm run icons"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.4",
+    "compression": "^1.7.4",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.1.5"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
 } 
