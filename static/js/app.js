@@ -361,21 +361,51 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("progress-fill").style.width = `${percentage}%`;
   }
   function downloadTasks() {
-    const data = {
-        tasks: tasks,
-        exportDate: new Date().toISOString(),
-        version: '1.0'
-    };
-    
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `tasks-backup-${new Date().toLocaleDateString().replace(/\//g, '-')}.json`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
+    try {
+        // Format the tasks data
+        const exportData = {
+            tasks: tasks,
+            exportDate: new Date().toISOString(),
+            version: "1.0"
+        };
+
+        // Convert to a readable format
+        const formattedData = JSON.stringify(exportData, null, 2);
+
+        // Create blob with proper formatting
+        const blob = new Blob([formattedData], { type: 'application/json' });
+        
+        // Generate filename with date
+        const fileName = `tasks-backup-${new Date().toISOString().split('T')[0]}.json`;
+
+        // For mobile devices
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 100);
+        } else {
+            // For desktop browsers
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        updateSyncStatus("Backup created", true);
+    } catch (error) {
+        console.error("Download failed:", error);
+        updateSyncStatus("Backup failed", false);
+    }
   }
   function updateSyncStatus(status, success = true) {
     const syncStatus = document.querySelector(".sync-status");
@@ -463,5 +493,26 @@ document.addEventListener("DOMContentLoaded", () => {
   downloadBtn.setAttribute('title', 'Download tasks');
   document.querySelector('header').appendChild(downloadBtn);
 
-  downloadBtn.addEventListener('click', downloadTasks);
+  // Add click event listener for download button
+  document.querySelector('.download-btn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const downloadBtn = e.currentTarget;
+    
+    // Add downloading state
+    downloadBtn.classList.add('downloading');
+    
+    try {
+        await downloadTasks();
+        // Show success feedback
+        updateSyncStatus("Backup created", true);
+    } catch (error) {
+        // Show error feedback
+        updateSyncStatus("Backup failed", false);
+    } finally {
+        // Remove downloading state after a short delay
+        setTimeout(() => {
+            downloadBtn.classList.remove('downloading');
+        }, 1000);
+    }
+  });
 }); // Close DOMContentLoaded event listener
