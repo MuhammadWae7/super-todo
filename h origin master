@@ -1,0 +1,8 @@
+[33mcommit 30af3a83609676328104d92dadca3fece0bf957f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m
+Author: MuhammadWae7 <mahammadwael1@gmail.com>
+Date:   Sun Mar 9 16:03:40 2025 +0200
+
+    Convert to static site deployment
+
+ static/css/style.css | 213 [32m+++++++++++++++++++++++++++++[m[31m----------------------[m
+ 1 file changed, 123 insertions(+), 90 deletions(-)
