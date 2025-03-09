@@ -651,73 +651,29 @@ h1 {
   }
 }
 
+/* Mobile Styles */
 @media (max-width: 768px) {
   .app-container {
     padding: 0.75rem;
-    max-width: 100%;
   }
 
   header {
-    margin-bottom: 1rem;
-    height: auto;
     padding: 0.75rem 0;
+    height: auto;
   }
 
   h1 {
     font-size: 1.75rem;
-    padding: 0 3.5rem;
-    margin-bottom: 0;
   }
 
   .theme-toggle,
   .download-btn {
     width: 40px;
     height: 40px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: var(--card-background);
   }
 
-  .download-btn {
-    right: 3.5rem;
-  }
-
-  .theme-toggle {
-    right: 0.75rem;
-  }
-
-  .download-btn svg,
-  .theme-toggle svg {
-    width: 18px;
-    height: 18px;
-  }
-
-  .sync-status {
-    top: 0.75rem;
-    left: 0.75rem;
-    padding: 0.35rem 0.85rem;
-    font-size: 0.8rem;
-    border-radius: 20px;
-  }
-
-  .progress-container {
-    padding: 1.25rem;
-    margin-bottom: 1.25rem;
-    border-radius: 16px;
-  }
-
-  .progress-info {
-    font-size: 1rem;
-  }
-
-  .add-task {
-    margin: 1rem 0;
-    gap: 0.75rem;
-  }
-
-  #new-task-input {
-    padding: 0.9rem 1rem;
-    font-size: 1rem;
+  #new-task-input,
+  .priority-select {
     height: 48px;
     border-radius: 12px;
   }
@@ -725,141 +681,34 @@ h1 {
   #add-task-btn {
     width: 48px;
     height: 48px;
-    font-size: 24px;
-    border-radius: 12px;
-  }
-
-  .priority-select {
-    padding: 0.9rem;
-    min-width: 120px;
-    font-size: 0.95rem;
-    height: 48px;
     border-radius: 12px;
   }
 
   .task-filters {
-    margin: 1rem 0;
-    padding: 0.5rem 0;
-    gap: 0.5rem;
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    flex-wrap: nowrap;
-  }
-
-  .task-filters::-webkit-scrollbar {
-    display: none;
   }
 
   .filter-btn {
-    padding: 0.75rem 1.25rem;
-    font-size: 0.9rem;
-    white-space: nowrap;
     height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .day-tabs {
-    padding: 0.5rem;
-    gap: 0.4rem;
-    margin: 0 -0.75rem;
-    border-radius: 0;
-    position: sticky;
-    top: 0;
-    z-index: 11;
-  }
-
-  .day-tab {
-    padding: 0.75rem 0.5rem;
-    font-size: 0.9rem;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .tasks-container {
-    padding: 1.25rem;
-    border-radius: 16px;
+    white-space: nowrap;
   }
 
   .task-item {
     padding: 1rem;
-    margin-bottom: 0.75rem;
     border-radius: 12px;
-    touch-action: none;
-  }
-
-  .task-actions {
-    opacity: 1;
-    gap: 0.6rem;
   }
 
   .edit-task,
   .delete-task {
     width: 44px;
     height: 44px;
-    border-radius: 10px;
-  }
-
-  .task-title {
-    font-size: 1rem;
-    line-height: 1.4;
-  }
-
-  .task-date {
-    font-size: 0.85rem;
-  }
-
-  .task-item input[type="checkbox"] {
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
-  }
-
-  .drag-handle {
-    font-size: 1.4rem;
-    padding: 0.5rem;
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--primary-color);
-  }
-
-  /* Improve touch feedback */
-  .task-item:active,
-  .filter-btn:active,
-  .day-tab:active,
-  .edit-task:active,
-  .delete-task:active,
-  #add-task-btn:active {
-    transform: scale(0.96);
-  }
-
-  .task-priority {
-    font-size: 0.85rem;
-    padding: 0.35rem 0.85rem;
-    border-radius: 16px;
-  }
-
-  .empty-state {
-    padding: 2rem 1.5rem;
-    margin-top: 1.5rem;
-    border-radius: 16px;
-  }
-
-  .empty-state::before {
-    font-size: 3rem;
-    margin-bottom: 1rem;
   }
 }
 
-/* Improve scrolling performance */
+/* Touch Device Optimizations */
 @media (pointer: coarse) {
   * {
     -webkit-tap-highlight-color: transparent;
@@ -868,7 +717,15 @@ h1 {
   .task-filters,
   .tasks-container {
     -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
     overscroll-behavior-y: contain;
+  }
+
+  .task-item:active,
+  .filter-btn:active,
+  .day-tab:active,
+  .edit-task:active,
+  .delete-task:active,
+  #add-task-btn:active {
+    transform: scale(0.96);
   }
 }
