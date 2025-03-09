@@ -4,8 +4,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A beautiful weekly task planner to help you stay organized" />
   <title>Weekly Task Planner</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
   <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}" />
   <meta name="theme-color" content="#6c5ce7" />
@@ -49,7 +52,7 @@
 
         <div class="tasks-container">
           <div class="add-task">
-            <input type="text" id="new-task-input" placeholder="Add a new task...">
+            <input type="text" id="new-task-input" placeholder="Add a new task..." />
             <button id="add-task-btn">+</button>
           </div>
           <div class="task-filters">
@@ -57,7 +60,9 @@
             <button class="filter-btn" data-filter="daily">Daily</button>
             <button class="filter-btn" data-filter="weekly">Weekly</button>
             <button class="filter-btn" data-filter="monthly">Monthly</button>
-            <button class="filter-btn" data-filter="recurring">Recurring</button>
+            <button class="filter-btn" data-filter="recurring">
+              Recurring
+            </button>
           </div>
           <div id="tasks-list"></div>
         </div>
