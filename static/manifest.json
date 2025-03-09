@@ -1,12 +1,13 @@
 {
-    "name": "Weekly Task Planner",
-    "short_name": "Tasks",
+    "name": "Tasker - Premium Weekly Planner",
+    "short_name": "Tasker",
     "description": "A beautiful weekly task planner to help you stay organized",
     "start_url": "/",
     "display": "standalone",
-    "background_color": "#f8f9fd",
-    "theme_color": "#6c5ce7",
-    "orientation": "portrait-primary",
+    "background_color": "#f8f5f2",
+    "theme_color": "#c19a6b",
+    "orientation": "any",
+    "categories": ["productivity", "utilities"],
     "icons": [
         {
             "src": "/static/icons/icon-192x192.png",
@@ -19,6 +20,25 @@
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "/static/screenshots/mobile.png",
+            "sizes": "1170x2532",
+            "type": "image/png",
+            "platform": "narrow",
+            "label": "Homescreen of Tasker"
+        }
+    ],
+    "prefer_related_applications": false,
+    "shortcuts": [
+        {
+            "name": "Add New Task",
+            "short_name": "New Task",
+            "description": "Create a new task",
+            "url": "/?action=new",
+            "icons": [{ "src": "/static/icons/icon-192x192.png", "sizes": "192x192" }]
         }
     ]
 }

@@ -1,3 +1,12 @@
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  // Prevent Chrome 67 and earlier from automatically showing the prompt
+  e.preventDefault();
+  // Stash the event so it can be triggered later
+  deferredPrompt = e;
+});
+
 document.addEventListener("DOMContentLoaded", () => {
   // Initialize state
   let tasks = JSON.parse(localStorage.getItem("tasks")) || {};
@@ -352,34 +361,39 @@ document.addEventListener("DOMContentLoaded", () => {
     updateProgress();
     sendSyncData();
   }
-  function updateProgress() {
-    const allTasks = Object.values(tasks).flat();
-    const totalTasks = allTasks.length;
-    const completedTasks = allTasks.filter(task => task.completed).length;
-    const percentage = totalTasks ? Math.round((completedTasks / totalTasks) * 100) : 0;
-    document.getElementById("progress-percentage").textContent = `${percentage}%`;
-    document.getElementById("progress-fill").style.width = `${percentage}%`;
-  }
-  function downloadTasks() {
+  async function installPWA() {
+    const downloadBtn = document.querySelector('.download-btn');
+    downloadBtn.classList.add('downloading');
+
     try {
-        // Format the tasks data
-        const exportData = {
+      if (deferredPrompt) {
+        // Show the install prompt
+        deferredPrompt.prompt();
+        // Wait for the user to respond to the prompt
+        const { outcome } = await deferredPrompt.userChoice;
+        
+        if (outcome === 'accepted') {
+          updateSyncStatus('App installed successfully!', true);
+          deferredPrompt = null;
+        } else {
+          updateSyncStatus('App installation cancelled', false);
+        }
+      } else {
+        // If app is already installed or running in standalone mode
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+          updateSyncStatus('App is already installed', false);
+        } else {
+          // Fallback to downloading tasks as JSON
+          const exportData = {
             tasks: tasks,
             exportDate: new Date().toISOString(),
             version: "1.0"
-        };
-
-        // Convert to a readable format
-        const formattedData = JSON.stringify(exportData, null, 2);
-
-        // Create blob with proper formatting
-        const blob = new Blob([formattedData], { type: 'application/json' });
-        
-        // Generate filename with date
-        const fileName = `tasks-backup-${new Date().toISOString().split('T')[0]}.json`;
-
-        // For mobile devices
-        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+          };
+          const formattedData = JSON.stringify(exportData, null, 2);
+          const blob = new Blob([formattedData], { type: 'application/json' });
+          const fileName = `tasks-backup-${new Date().toISOString().split('T')[0]}.json`;
+          
+          if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -388,23 +402,27 @@ document.addEventListener("DOMContentLoaded", () => {
             document.body.appendChild(a);
             a.click();
             setTimeout(() => {
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
+              document.body.removeChild(a);
+              window.URL.revokeObjectURL(url);
             }, 100);
-        } else {
-            // For desktop browsers
+          } else {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = fileName;
             a.click();
             window.URL.revokeObjectURL(url);
+          }
+          updateSyncStatus('Data backup downloaded', true);
         }
-
-        updateSyncStatus("Backup created", true);
+      }
     } catch (error) {
-        console.error("Download failed:", error);
-        updateSyncStatus("Backup failed", false);
+      console.error('Installation/Download failed:', error);
+      updateSyncStatus('Installation failed', false);
+    } finally {
+      setTimeout(() => {
+        downloadBtn.classList.remove('downloading');
+      }, 1000);
     }
   }
   function updateSyncStatus(status, success = true) {
@@ -486,33 +504,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Add event listeners at the end of the DOMContentLoaded callback
+  // Update the download button event listener
   const downloadBtn = document.createElement('button');
   downloadBtn.className = 'download-btn';
+  downloadBtn.setAttribute('title', 'Install App / Download Backup');
   downloadBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`;
-  downloadBtn.setAttribute('title', 'Download tasks');
   document.querySelector('header').appendChild(downloadBtn);
 
-  // Add click event listener for download button
-  document.querySelector('.download-btn').addEventListener('click', async (e) => {
+  downloadBtn.addEventListener('click', async (e) => {
     e.preventDefault();
-    const downloadBtn = e.currentTarget;
-    
-    // Add downloading state
-    downloadBtn.classList.add('downloading');
-    
-    try {
-        await downloadTasks();
-        // Show success feedback
-        updateSyncStatus("Backup created", true);
-    } catch (error) {
-        // Show error feedback
-        updateSyncStatus("Backup failed", false);
-    } finally {
-        // Remove downloading state after a short delay
-        setTimeout(() => {
-            downloadBtn.classList.remove('downloading');
-        }, 1000);
-    }
+    await installPWA();
   });
 }); // Close DOMContentLoaded event listener
