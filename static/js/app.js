@@ -104,17 +104,39 @@ document.addEventListener("DOMContentLoaded", () => {
     taskElement.className = `task-item ${task.completed ? "completed" : ""}`;
     taskElement.style.animation = "slideIn 0.3s ease";
     taskElement.draggable = true;
+    
+    // Calculate priority (high, medium, low)
+    const priorityClass = task.priority === 1 ? 'priority-high' : 
+                         (task.priority === 3 ? 'priority-low' : 'priority-medium');
+    const priorityText = task.priority === 1 ? 'High' : 
+                        (task.priority === 3 ? 'Low' : 'Medium');
+    
+    // Format date
+    const taskDate = task.created ? new Date(task.created) : new Date();
+    const formattedDate = taskDate.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
     taskElement.innerHTML = `
-              <div class="task-content">
-                  <span class="drag-handle">≡</span>
-                  <input type="checkbox" ${task.completed ? "checked" : ""}>
-                  <span class="task-title" contenteditable="false">${task.title}</span>
-              </div>
-              <div class="task-actions">
-                  <button class="edit-task">✎</button>
-                  <button class="delete-task">×</button>
-              </div>
-          `;
+        <div class="task-content">
+            <span class="drag-handle">≡</span>
+            <input type="checkbox" ${task.completed ? "checked" : ""}>
+            <div class="task-meta">
+                <span class="task-title">${task.title}</span>
+                <div class="task-details">
+                    <span class="task-date">${formattedDate}</span>
+                    <span class="task-priority ${priorityClass}">${priorityText}</span>
+                </div>
+            </div>
+        </div>
+        <div class="task-actions">
+            <button class="edit-task">✎</button>
+            <button class="delete-task">×</button>
+        </div>
+    `;
 
     let touchStartY = 0;
     let currentDrag = null;
@@ -281,7 +303,8 @@ document.addEventListener("DOMContentLoaded", () => {
         title: taskText,
         completed: false,
         category: currentCategory === 'all' ? 'daily' : currentCategory,
-        created: new Date().toISOString()
+        created: new Date().toISOString(),
+        priority: Math.floor(Math.random() * 3) + 1 // Random priority: 1 (high), 2 (medium), 3 (low)
       };
 
       // Handle tasks that should appear across all days
