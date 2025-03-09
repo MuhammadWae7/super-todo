@@ -23,7 +23,7 @@ def get_ip():
 
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.urandom(24)
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", os.urandom(24))
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///todo.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -72,8 +72,14 @@ def get_tasks():
         'category': task.category
     } for task in tasks])
 
+@socketio.on("sync")
+def handle_sync(data):
+    try:
+        socketio.emit("sync", {"type": "sync", "data": data.get("tasks", {})}, broadcast=True, include_self=False)
+        socketio.emit("sync_success", room=request.sid)
+    except Exception as e:
+        socketio.emit("sync_error", str(e), room=request.sid)
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-    socketio.run(app, host=get_ip(), port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    socketio.run(app, host="0.0.0.0", port=port)
